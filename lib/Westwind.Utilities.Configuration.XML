@@ -1,0 +1,2294 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Westwind.Utilities.Configuration</name>
+    </assembly>
+    <members>
+        <member name="T:Westwind.Utilities.Configuration.AppConfiguration">
+            <summary>
+            This class provides a strongly typed configuration base class that can read
+             and write configuration data from various configuration stores including 
+            .NET .config files, plain XML files, strings and SQL Server databases.
+            
+            This mechanism uses a class-first approach to configuration management 
+            where you declare your configuration settings as simple class properties on
+             a subclass of this abstract class. The class then automatically reads 
+            configuration information from the configuration store into the class' 
+            properties. If settings don't exist they are auto-created, permissions 
+            permitting. You can create multiple configuration objects. The advantage of
+             this class centric approach is that your configuration is not bound to any
+             particular environment - you can use the configuration in a Web, desktop, 
+            console or service app using the same mechanism.
+            
+            Using this class is easy: You create a subclass of AppConfiguration add a 
+            constructor (or two) and then simply add properties to the class. The 
+            implementation will handle persistence transparently. Typical 
+            implementation defines the configuration class as a static property on a 
+            global object of some sort (ie. App.Configuration.MySetting).
+            
+            Storage is configured via a configuration provider that configures provider
+             specific features. The configuration class then uses the provider to read 
+            and write data from the configuration store. The base providers also 
+            support encryption of individual fields.
+            <seealso>Managing Configuration Settings with AppConfiguration</seealso>
+            </summary>
+            <example>
+            &lt;&lt;/pre&gt;&gt;&lt;&lt;b&gt;&gt;Class Implementation&lt;&lt;/b&gt;&gt;    
+            &lt;&lt;code lang=&quot;C#&quot;&gt;&gt;/// &lt;summary&gt;
+            /// Your application specific config class
+            /// &lt;/summary&gt;
+            public class ApplicationConfiguration : 
+            Westwind.Utilities.Configuration.AppConfiguration
+            {
+                public ApplicationConfiguration()
+                { }
+            
+                public ApplicationConfiguration(IConfigurationProvider provider)
+                    : base(provider, "&quot;ApplicationConfiguration&quot;)
+                {
+                    if (provider == null)
+                    {
+                        Provider = new
+                             
+            ConfigationFileConfigurationProvider&lt;ApplicationConfiguration&gt;()
+                        {
+                            PropertiesToEncrypt = 
+            &quot;MailServerPassword,ConnectionString&quot;,
+                            EncryptionKey = &quot;secret&quot;,
+                            ConfigurationSection = &quot;ApplicationConfiguration&quot;
+                        };
+            
+                        // Example of Sql configuration
+                        //Provider = new
+                        //   
+            SqlServerConfigurationProvider&lt;ApplicationConfiguration&gt;()
+                        //{
+                        //    FieldsToEncrypt = 
+            &quot;MailServerPassword,ConnectionString&quot;,
+                        //    EncryptKey = &quot;secret&quot;,
+                        //    ConnectionString = &quot;DevSampleConnectionString&quot;,
+                        //    Tablename = &quot;Configuration&quot;,
+                        //    Key = 1
+                        //};
+                        // Example of external XML configuration
+                        //Provider = new 
+            XmlFileConfigurationProvider&lt;ApplicationConfiguration&gt;()
+                        //{
+                        //    FieldsToEncrypt = 
+            &quot;MailServerPassword,ConnectionString&quot;,
+                        //    EncryptKey = &quot;secret&quot;,
+                        //    XmlConfigurationFile =
+                        //         
+            HttpContext.Current.Server.MapPath(&quot;~/Configuration.xml&quot;)
+                        //};
+                    }
+                    else
+                        Provider = provider;
+            
+                    Provider.Read(this);
+                }
+            
+            	// persisted configuration properties - note type suppport
+                public string ApplicationTitle
+                {
+                    get { return _ApplicationTitle; }
+                    set { _ApplicationTitle = value; }
+                }
+                private string _ApplicationTitle = &quot;West Wind Web Toolkit&quot;;
+            
+                public string ConnectionString
+                {
+                    get { return _ConnectionString; }
+                    set { _ConnectionString = value; }
+                }
+                private string _ConnectionString = &quot;&quot;;
+            
+                public DebugModes DebugMode
+                {
+                    get { return _DebugMode; }
+                    set { _DebugMode = value; }
+                }
+                private DebugModes _DebugMode =
+                                       DebugModes.ApplicationErrorMessage;
+            
+                public int MaxPageItems
+                {
+                    get { return _MaxPageItems; }
+                    set { _MaxPageItems = value; }
+                }
+                private int _MaxPageItems = 20;
+            }&lt;&lt;/code&gt;&gt;
+            
+            &lt;&lt;b&gt;&gt;Class Hookup as a static Property&lt;&lt;/b&gt;&gt;
+            
+            &lt;&lt;code lang=&quot;C#&quot;&gt;&gt;public class App
+            {
+                public static ApplicationConfiguration Configuration
+                {
+                    get { return _Configuration; }
+                    set { _Configuration = value; }
+                }
+                private static ApplicationConfiguration _Configuration;
+            
+                static App()
+                {
+                    /// Load the general Application config properties from the Config 
+            file
+                    Configuration = new ApplicationConfiguration(null);
+            
+                }
+            }
+            &lt;&lt;/code&gt;&gt;
+            
+            &lt;&lt;b&gt;&gt;Usage from anywhere in the Application&lt;&lt;/b&gt;&gt;
+            
+            &lt;&lt;code lang=&quot;C#&quot;&gt;&gt;var title = 
+            App.Configuration.ApplicationTitle;
+            if (App.Configuration.DebugMode == DebugModes.Default)
+               throw new ApplicationException(&quot;Boo&quot;);
+            &lt;&lt;/code&gt;&gt;
+            </example>
+        </member>
+        <member name="F:Westwind.Utilities.Configuration.AppConfiguration.Provider">
+            <summary>
+            An instance of a IConfigurationProvider that
+            needs to be passed in via constructor or set
+            explicitly to read and write from the configuration
+            store.
+            </summary>
+        </member>
+        <member name="F:Westwind.Utilities.Configuration.AppConfiguration.ErrorMessage">
+            <summary>
+            Contains an error message if a method returns false or the object fails to 
+            load the configuration data.
+            <seealso>Class AppConfiguration</seealso>
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.#ctor">
+            <summary>
+            Default constructor of this class SHOULD ALWAYS be implemented in
+            every subclass to allow serialization instantiation. Should be left empty.
+            
+            Typically subclass implementations should leave this blank
+            and implement the version that passes in a provider instance
+            or null (default provider).
+            </summary>         
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.#ctor(Westwind.Utilities.Configuration.IConfigurationProvider,System.String)">
+            <summary>
+            This version of the constructor accepts a premade 
+            instance of a provider - this is the recommended
+            constructor to use so that the default constructor 
+            creates a clean instance.
+            
+            Typically you'll subclass this constructor. The
+            default implementation provides for a section in
+            the applicaiton's .config file.
+            
+            Recommend you implement default your constructor 
+            to automatically load up:
+            
+            public MyConfiguration() : base(null,"MyAppConfig") 
+            {}
+            
+            Pass null and create a default provider implementation
+            here - typically ConfigFileConfigurationProvider.
+            </summary>
+            <param name="provider"></param>
+            <param name="sectionName">Optional - section name used </param>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.#ctor(System.Boolean)">
+            <summary>
+            This version of the constructor doesn't do any default
+            configuration.
+            </summary>
+            <param name="noConfiguration"></param>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.Initialize">
+            <summary>
+            Overridable method that can be used to initialize the base 
+            object state. Use to set default values for properties and
+            then if necessary call from the appropriate constructors.
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.Write">
+            <summary>
+            Writes the current configuration information data to the
+            provider's configuration store.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.WriteAsString">
+            <summary>
+            Writes the current configuration information to an
+            XML string. String is in .NET XML Serialization format.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.Read``1">
+            <summary>
+            Reads the configuration information from the 
+            provider's store and returns a new instance
+            of an configuration object.
+            </summary>
+            <typeparam name="T">This configuration class type</typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.Read">
+            <summary>
+            Reads the configuration from the provider's store
+            into the current object instance.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.Read(System.String)">
+            <summary>
+            Reads configuration data from a string and populates the current
+            instance with the values.
+            
+            Data should be serialized in XML Searlization format created
+            with <seealso cref="M:Westwind.Utilities.Configuration.AppConfiguration.WriteAsString"/>
+            </summary>
+            <param name="xml">Xml string in XML Serialization format</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.Read``1(Westwind.Utilities.Configuration.IConfigurationProvider)">
+            <summary>
+            Reads configuration based on a provider configuration
+            and returns a new instance of the configuration object
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="provider">A configured <seealso cref="!:IConfiguration"/> provider</param>
+            <returns>instance of configuration or null on failure</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.Read``1(System.String,Westwind.Utilities.Configuration.IConfigurationProvider)">
+            <summary>
+            Creates a new instance of the config object and retrieves
+            configuration information from the provided string. String 
+            should be in XML Serialization format or created by the 
+            <seealso cref="M:Westwind.Utilities.Configuration.AppConfiguration.WriteAsString"/> method.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="xml"></param>
+            <param name="provider">Required if encryption decryption is desired</param>
+            <returns>config instance or null on failure</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.Read``1(System.String)">
+            <summary>
+            Creates a new instance of the config object and retrieves
+            configuration information from the provided string. String 
+            should be in XML Serialization format or created by the 
+            <seealso cref="M:Westwind.Utilities.Configuration.AppConfiguration.WriteAsString"/> method.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="xml"></param>
+            <returns>config instance or null on failure</returns>
+        </member>
+        <member name="T:Westwind.Utilities.Configuration.MyAppConfiguration">
+            <summary>
+            Sample class for diagram display
+            </summary>
+        </member>
+        <member name="T:Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider`1">
+            <summary>
+            Reads and Writes configuration settings in .NET config files and 
+            sections. Allows reading and writing to default or external files 
+            and specification of the configuration section that settings are
+            applied to.
+            </summary>
+        </member>
+        <member name="T:Westwind.Utilities.Configuration.ConfigurationProviderBase`1">
+            <summary>
+            Base Configuration Provider Implementation. This implementation provides
+            for the basic layout of a provider and fields that implement the
+            IConfigurationProvider interface.
+            
+            The Read and Write methods must be overridden - all other methods and 
+            fields are optional
+            
+            </summary>
+        </member>
+        <member name="T:Westwind.Utilities.Configuration.IConfigurationProvider">
+            <summary>
+            Configuration Provider interface that provides read and write services
+            to various configuration storage mechanisms.
+            
+            Used in conjunction with the <seealso cref="T:Westwind.Utilities.Configuration.AppConfiguration"/> class. 
+            A base implementation from which to inherit is provided in the
+            <seealso cref="!:ConfigurationProviderBase"/>  class.
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.IConfigurationProvider.Read``1">
+            <summary>
+            Reads configuration information into new configuration object instance
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.IConfigurationProvider.Read(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Reads configuration information into a provided config object instance
+            </summary>
+            <param name="config"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.IConfigurationProvider.Read(Westwind.Utilities.Configuration.AppConfiguration,System.String)">
+            <summary>
+            Reads configuration information from an XML string (Xml Serialization format)
+            into a provided config object instance
+            </summary>
+            <param name="config"></param>
+            <param name="xml"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.IConfigurationProvider.Write(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Writes configuration information into a provided object instance
+            </summary>
+            <param name="config"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.IConfigurationProvider.WriteAsString(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Writes configuration for a provided config object and returns
+            the serialized data as a string.
+            </summary>
+            <param name="config"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.IConfigurationProvider.EncryptFields(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Encrypts fields in a config object as specified in the <seealso cref="!:FieldsToEncrypt"/> property.
+            </summary>
+            <param name="config"></param>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.IConfigurationProvider.DecryptFields(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Decryptes the encyrpted fields in a config object a
+            </summary>
+            <param name="config"></param>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.IConfigurationProvider.ErrorMessage">
+            <summary>
+            Holds an error message after a read or write operation
+            failed.
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.IConfigurationProvider.PropertiesToEncrypt">
+            <summary>
+            A comma delimited list of fields that are to be encrypted
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.IConfigurationProvider.EncryptionKey">
+            <summary>
+            The encryption key used to encrypt fields in config objects
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.Read``1">
+            <summary>
+            Reads a configurations settings from the configuration store
+            into a new existing instance.
+            </summary>
+            <typeparam name="T">Specific Config Settings Class</typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.Read(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Reads configuration settings from the store into a passed
+            instance of the configuration instance.
+            </summary>
+            <param name="config">Specific config settings class instance</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.Write(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Writes the configuration settings from a specific instance
+            into the configuration store.
+            </summary>
+            <param name="config"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.Read``1(System.String)">
+            <summary>
+            Creates a new instance of the application object and retrieves
+            configuration information from the provided string. String 
+            should be in XML Serialization format or created by the WriteAsString 
+            method.
+            </summary>
+            <typeparam name="T">Type of the specific configuration class</typeparam>
+            <param name="xml">An xml string that contains XML Serialized serialization data</param>
+            <returns>The deserialized instance or null on failure</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.Read(Westwind.Utilities.Configuration.AppConfiguration,System.String)">
+            <summary>
+            Reads data into configuration from an XML string into a passed 
+            instance of the a configuration object.
+            </summary>
+            <param name="config">An instance of a custom configuration object</param>
+            <param name="xml">Xml of serialized configuration instance.</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.WriteAsString(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Writes the current configuration information to an
+            XML string. String is XML Serialization format.
+            </summary>
+            <returns>xml string of serialized config object</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.EncryptFields(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Encrypts all the fields in the current object based on the EncryptFieldList
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.DecryptFields(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Internally decryptes all the fields in the current object based on the EncryptFieldList
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.SetError(System.String)">
+            <summary>
+            Sets an error message when an error occurs
+            </summary>
+            <param name="message"></param>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.SetError(System.Exception)">
+            <summary>
+            Writes an exception and innerexception message
+            into the error message text
+            </summary>
+            <param name="ex"></param>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.CreateConfigurationInstance">
+            <summary>
+            Helper method to create a new instance of the Configuration object.        
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.ErrorMessage">
+            <summary>
+            Displays error information when results fail.
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.PropertiesToEncrypt">
+            <summary>
+            A comma delimiter list of property names that are 
+            to be encrypted when persisted to the store
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.ConfigurationProviderBase`1.EncryptionKey">
+            <summary>
+            The encryption key to encrypt the fields 
+            set with FieldsToEncrypt
+            </summary>
+        </member>
+        <member name="F:Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider`1.syncWriteLock">
+            <summary>
+            internal property used to ensure there are no multiple write
+            operations at the same time
+            </summary>
+        </member>
+        <member name="F:Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider`1.XmlNamespaces">
+            <summary>
+            Internally used reference to the Namespace Manager object
+            used to make sure we're searching the proper Namespace
+            for the appSettings section when reading and writing manually
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider`1.Read``1">
+            <summary>
+            Reads configuration settings into a new instance of the configuration object.
+            </summary>
+            <typeparam name="TAppConfig"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider`1.Read(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Reads configuration settings from the current configuration manager. 
+            Uses the internal APIs to write these values.
+            </summary>
+            <typeparam name="TAppConfiguration"></typeparam>
+            <param name="config"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider`1.Read(Westwind.Utilities.Configuration.AppConfiguration,System.String)">
+            <summary>
+            Reads Configuration settings from an external file or explicitly from a file.
+            Uses XML DOM to read values instead of using the native APIs.
+            </summary>
+            <typeparam name="TAppConfiguration"></typeparam>
+            <param name="config">Configuration instance</param>
+            <param name="filename">Filename to read from</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider`1.GetNamedValueFromXml(System.Xml.XmlDocument,System.String,System.String)">
+            <summary>
+            Returns a single value from the XML in a configuration file.
+            </summary>
+            <param name="Dom"></param>
+            <param name="Key"></param>
+            <param name="ConfigSection"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider`1.GetXmlNamespaceInfo(System.Xml.XmlDocument)">
+            <summary>
+            Used to load up the default namespace reference and prefix
+            information. This is required so that SelectSingleNode can
+            find info in 2.0 or later config files that include a namespace
+            on the root element definition.
+            </summary>
+            <param name="Dom"></param>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider`1.CreateConfigSection(System.Xml.XmlDocument,System.String)">
+            <summary>
+            Creates a Configuration section and also creates a ConfigSections section for new 
+            non appSettings sections.
+            </summary>
+            <param name="dom"></param>
+            <param name="configSection"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider`1.ConfigurationFile">
+            <summary>
+            Optional - the Configuration file where configuration settings are
+            stored in. If not specified uses the default Configuration Manager
+            and its default store.
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider`1.ConfigurationSection">
+            <summary>
+            Optional The Configuration section where settings are stored.
+            If not specified the appSettings section is used.
+            </summary>
+        </member>
+        <member name="T:Westwind.Utilities.Configuration.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.AConnectionStringMustBePassedToTheConstructor">
+            <summary>
+              Looks up a localized string similar to A connection string must be passed to the constructor.
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.ByteValueGreaterThan20megsAreNotSupported">
+            <summary>
+              Looks up a localized string similar to Byte[] value greater than 20megs are not supported.
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.ConfigurationMethodNoLongerSupported">
+            <summary>
+              Looks up a localized string similar to This Configuration method is no longer supported. Use a Provider configuration instead..
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.DataReaderPassedToDataReaderToObjectCannot">
+            <summary>
+              Looks up a localized string similar to DataReader passed to DataReaderToObject cannot be closed.
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.InvalidConnectionStringName">
+            <summary>
+              Looks up a localized string similar to Invalid Connection string name..
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.InvalidTypeForXmlTypeToNETTypeConversion">
+            <summary>
+              Looks up a localized string similar to Invalid type for XmlType to .NET Type conversion..
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.StringToTypedValueValueTypeConversionFailed">
+            <summary>
+              Looks up a localized string similar to Type Conversion not handled in StringToTypedValue for .
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.UnableToExtractKeys">
+            <summary>
+              Looks up a localized string similar to Unable to read configuration string from Sql Server field..
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.UnableToReadConfigDataFromString">
+            <summary>
+              Looks up a localized string similar to Unable to read config information from string..
+            </summary>
+        </member>
+        <member name="T:Westwind.Utilities.Configuration.SqlServerConfigurationProvider`1">
+            <summary>
+            Reads and Writes configuration settings in .NET config files and 
+            sections. Allows reading and writing to default or external files 
+            and specification of the configuration section that settings are
+            applied to.
+            
+            This implementation doesn't support Read and Write operation that
+            don't return a string value. Only Read(string) and WriteAsString()
+            should be used to read and write string values.
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.SqlServerConfigurationProvider`1.Read``1">
+            <summary>
+            Reads configuration data into a new instance from SQL Server
+            that is returned.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.SqlServerConfigurationProvider`1.Read(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Reads configuration data from Sql Server into an existing 
+            instance updating its fields.
+            </summary> 
+            <param name="config"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.SqlServerConfigurationProvider`1.ConnectionString">
+            <summary>
+            The raw SQL connection string or connectionstrings name
+            for the database connection.
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.SqlServerConfigurationProvider`1.ProviderName">
+            <summary>
+            The data provider used to access the database
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.SqlServerConfigurationProvider`1.Tablename">
+            <summary>
+            Table in the database that holds configuration data
+            Table must have ID(int) and ConfigData (nText) fields
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.SqlServerConfigurationProvider`1.Key">
+            <summary>
+            The key of the record into which the config
+            data is written. Defaults to 1.
+            
+            If you need to read or write multiple different
+            configuration records you have to change it on
+            this provider before calling the Read()/Write()
+            methods.
+            </summary>
+        </member>
+        <member name="T:Westwind.Utilities.Configuration.StringConfigurationProvider`1">
+            <summary>
+            Reads and Writes configuration settings from strings - which you manage
+            yourself. Using strings for the configuration provider allows for easy
+            storage into any non-supported configuration stores that you control
+            through your code as long as it supports strings.   
+            
+            The string provider is a real minimal implementation that only implements
+            WriteAsString(config) and Read(string).
+            </summary>
+        </member>
+        <member name="T:Westwind.Utilities.DataUtils">
+            <summary>
+            Utility library for common data operations.
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Westwind.Utilities.DataUtils.GenerateUniqueId(System.Int32)" -->
+        <!-- Badly formed XML comment ignored for member "M:Westwind.Utilities.DataUtils.GenerateUniqueNumericId" -->
+        <member name="M:Westwind.Utilities.DataUtils.CopyDataRow(System.Data.DataRow,System.Data.DataRow)">
+            <summary>
+            Copies the content of a data row to another. Runs through the target's fields
+            and looks for fields of the same name in the source row. Structure must mathc
+            or fields are skipped.
+            </summary>
+            <param name="source"></param>
+            <param name="target"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.CopyObjectToDataRow(System.Data.DataRow,System.Object)">
+            <summary>
+            Copies the content of an object to a DataRow with matching field names.
+            Both properties and fields are copied. If a field copy fails due to a
+            type mismatch copying continues but the method returns false
+            </summary>
+            <param name="row"></param>
+            <param name="target"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.CopyObjectData(System.Object,System.Object)">
+            <summary>
+            Copies the content of one object to another. The target object 'pulls' properties of the first. 
+            </summary>
+            <param name="source"></param>
+            <param name="target"></param>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.CopyObjectData(System.Object,System.Object,System.Reflection.BindingFlags)">
+            <summary>
+            Copies the content of one object to another. The target object 'pulls' properties of the first. 
+            </summary>
+            <param name="source"></param>
+            <param name="target"></param>
+            <param name="memberAccess"></param>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.CopyObjectData(System.Object,System.Object,System.String)">
+            <summary>
+            Copies the content of one object to another. The target object 'pulls' properties of the first. 
+            </summary>
+            <param name="source"></param>
+            <param name="target"></param>
+            <param name="excludedProperties"></param>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.CopyObjectData(System.Object,System.Object,System.String,System.Reflection.BindingFlags)">
+            <summary>
+            Copies the data of one object to another. The target object 'pulls' properties of the first. 
+            This any matching properties are written to the target.
+            
+            The object copy is a shallow copy only. Any nested types will be copied as 
+            whole values rather than individual property assignments (ie. via assignment)
+            </summary>
+            <param name="source">The source object to copy from</param>
+            <param name="target">The object to copy to</param>
+            <param name="excludedProperties">A comma delimited list of properties that should not be copied</param>
+            <param name="memberAccess">Reflection binding access</param>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.DataReaderToObjectList``1(System.Data.IDataReader,System.String,System.Collections.Generic.Dictionary{System.String,System.Reflection.PropertyInfo})">
+            <summary>
+            Creates a list of a given type from all the rows in a DataReader.
+            
+            Note this method uses Reflection so this isn't a high performance
+            operation, but it can be useful for generic data reader to entity
+            conversions on the fly and with anonymous types.
+            </summary>
+            <typeparam name="TType"></typeparam>
+            <param name="reader">An open DataReader that's in position to read</param>
+            <param name="fieldsToSkip">Optional - comma delimited list of fields that you don't want to update</param>
+            <param name="piList">
+            Optional - Cached PropertyInfo dictionary that holds property info data for this object.
+            Can be used for caching hte PropertyInfo structure for multiple operations to speed up
+            translation. If not passed automatically created.
+            </param>
+            <returns></returns>
+            <remarks>DataReader is not closed by this method. Make sure you call reader.close() afterwards</remarks>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.DataReaderToObject(System.Data.IDataReader,System.Object,System.String,System.Collections.Generic.Dictionary{System.String,System.Reflection.PropertyInfo})">
+            <summary>
+            Populates the properties of an object from a single DataReader row using
+            Reflection by matching the DataReader fields to a public property on
+            the object passed in. Unmatched properties are left unchanged.
+            
+            You need to pass in a data reader located on the active row you want
+            to serialize.
+            
+            This routine works best for matching pure data entities and should
+            be used only in low volume environments where retrieval speed is not
+            critical due to its use of Reflection.
+            </summary>
+            <param name="reader">Instance of the DataReader to read data from. Should be located on the correct record (Read() should have been called on it before calling this method)</param>
+            <param name="instance">Instance of the object to populate properties on</param>
+            <param name="fieldsToSkip">Optional - A comma delimited list of object properties that should not be updated</param>
+            <param name="piList">Optional - Cached PropertyInfo dictionary that holds property info data for this object</param>
+        </member>
+        <member name="F:Westwind.Utilities.DataUtils.MinimumSqlDate">
+            <summary>
+            The default SQL date used by InitializeDataRowWithBlanks. Considered a blank date instead of null.
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.InitializeDataRowWithBlanks(System.Data.DataRow)">
+            <summary>
+            Initializes a Datarow containing NULL values with 'empty' values instead.
+            Empty values are:
+            String - ""
+            all number types - 0 or 0.00
+            DateTime - Value of MinimumSqlData (1/1/1900 by default);
+            Boolean - false
+            Binary values and timestamps are left alone
+            </summary>
+            <param name="row">DataRow to be initialized</param>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.SqlTypeToDotNetType(System.Data.SqlDbType)">
+            <summary>
+            Maps a SqlDbType to a .NET type
+            </summary>
+            <param name="sqlType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.DbTypeToDotNetType(System.Data.DbType)">
+            <summary>
+            Maps a DbType to a .NET native type
+            </summary>
+            <param name="sqlType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.DotNetTypeToDbType(System.Type)">
+            <summary>
+            Converts a .NET type into a DbType value
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.DotNetTypeToSqlType(System.Type)">
+            <summary>
+            Converts a .NET type into a SqlDbType.
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.GetSqlCommand(System.String,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Creates a Command object and opens a connection
+            </summary>
+            <param name="ConnectionString"></param>
+            <param name="Sql"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.GetSqlDataReader(System.String,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Returns a SqlDataReader object from a SQL string.
+            
+            Please ensure you close the Reader object
+            </summary>
+            <param name="ConnectionString"></param>
+            <param name="Sql"></param>
+            <param name="Parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.GetDataTable(System.String,System.String,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Returns a DataTable from a Sql Command string passed in.
+            </summary>
+            <param name="Tablename"></param>
+            <param name="ConnectionString"></param>
+            <param name="Sql"></param>
+            <param name="Parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.DataUtils.CloseConnection(System.Data.SqlClient.SqlCommand)">
+            <summary>
+            Closes a connection
+            </summary>
+            <param name="Command"></param>
+        </member>
+        <member name="T:Westwind.Utilities.Data.DataAccessBase">
+            <summary>
+            Basic low level Data Access Layer
+            </summary>
+        </member>
+        <member name="F:Westwind.Utilities.Data.DataAccessBase.dbProvider">
+            <summary>
+            The internally used dbProvider
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.OpenConnection">
+            <summary>
+            Opens a Sql Connection based on the connection string.
+            Called internally but externally accessible. Sets the internal
+            _Connection property.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.CreateCommand(System.String,System.Data.CommandType,System.Data.Common.DbParameter[])">
+            <summary>
+            Creates a Command object and opens a connection
+            </summary>
+            <param name="ConnectionString"></param>
+            <param name="sql"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.CreateCommand(System.String,System.Data.Common.DbParameter[])">
+            <summary>
+            Creates a Command object and opens a connection
+            </summary>
+            <param name="ConnectionString"></param>
+            <param name="sql"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.CreateParameter(System.String,System.Object)">
+            <summary>
+            Used to create named parameters to pass to commands or the various
+            methods of this class.
+            </summary>
+            <param name="parameterName"></param>
+            <param name="value"></param>
+            <param name="dbType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.CreateParameter(System.String,System.Object,System.Data.ParameterDirection)">
+            <summary>
+            Used to create named parameters to pass to commands or the various
+            methods of this class.
+            </summary>
+            <param name="parameterName"></param>
+            <param name="value"></param>
+            <param name="dbType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.CreateParameter(System.String,System.Object,System.Int32)">
+            <summary>
+            Used to create named parameters to pass to commands or the various
+            methods of this class.
+            </summary>
+            <param name="parameterName"></param>
+            <param name="value"></param>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.CreateParameter(System.String,System.Object,System.Data.DbType)">
+            <summary>
+            Used to create named parameters to pass to commands or the various
+            methods of this class.
+            </summary>
+            <param name="parameterName"></param>
+            <param name="value"></param>
+            <param name="dbType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.CreateParameter(System.String,System.Object,System.Data.DbType,System.Int32)">
+            <summary>
+            Used to create named parameters to pass to commands or the various
+            methods of this class.
+            </summary>
+            <param name="parameterName"></param>
+            <param name="value"></param>
+            <param name="type"></param>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteNonQuery(System.Data.Common.DbCommand,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a non-query command and returns the affected records
+            </summary>
+            <param name="Command">Command should be created with GetSqlCommand to have open connection</param>
+            <param name="Parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteNonQuery(System.String,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a command that doesn't return any data. The result
+            returns the number of records affected or -1 on error.
+            </summary>
+            <param name="sql">SQL statement as a string</param>
+            <param name="parameters">Any number of SQL named parameters</param>
+            <returns></returns>
+            <summary>
+            Executes a command that doesn't return a data result. You can return
+            output parameters and you do receive an AffectedRecords counter.
+            </summary>        
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteReader(System.Data.Common.DbCommand,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a SQL Command object and returns a SqlDataReader object
+            </summary>
+            <param name="Command">Command should be created with GetSqlCommand and open connection</param>
+            <param name="Parameters"></param>
+            <returns></returns>
+            <returns>A SqlDataReader. Make sure to call Close() to close the underlying connection.</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteReader(System.String,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a SQL command against the server and returns a DbDataReader
+            </summary>
+            <param name="sql">Sql String</param>
+            <param name="parameters">Any SQL parameters </param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteReader``1(System.String,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a SQL statement and creates an object list using
+            Reflection.
+            
+            Not very efficient but provides an easy way to retrieve
+            </summary>
+            <typeparam name="T">Entity type to create from DataReader data</typeparam>
+            <param name="sql">Sql string to execute</param>        
+            <param name="parameters">DbParameters to fill the SQL statement</param>
+            <returns>List of objects</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteReader``1(System.String,System.String,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a SQL statement and creates an object list using
+            Reflection.
+            
+            Not very efficient but provides an easy way to retrieve
+            </summary>
+            <typeparam name="T">Entity type to create from DataReader data</typeparam>
+            <param name="sql">Sql string to execute</param>        
+            <param name="propertiesToExclude">Comma delimited list of properties that are not to be updated</param>
+            <param name="parameters">DbParameters to fill the SQL statement</param>
+            <returns>List of objects</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteReader``1(System.Data.Common.DbCommand,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a SQL statement and creates an object list using
+            Reflection.
+            
+            Not very efficient but provides an easy way to retrieve
+            </summary>
+            <typeparam name="T">Entity type to create from DataReader data</typeparam>
+            <param name="sql">Sql string to execute</param>        
+            <param name="parameters">DbParameters to fill the SQL statement</param>
+            <returns>List of objects</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteTable(System.String,System.Data.Common.DbCommand,System.Data.Common.DbParameter[])">
+            <summary>
+            Returns a DataTable from a Sql Command string passed in.
+            </summary>
+            <param name="Tablename"></param>
+            <param name="Command"></param>
+            <param name="Parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteTable(System.String,System.String,System.Data.Common.DbParameter[])">
+            <summary>
+            Returns a DataTable from a Sql Command string passed in.
+            </summary>
+            <param name="Tablename"></param>
+            <param name="ConnectionString"></param>
+            <param name="Sql"></param>
+            <param name="Parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteDataSet(System.String,System.Data.Common.DbCommand,System.Data.Common.DbParameter[])">
+            <summary>
+            Returns a DataSet/DataTable from a Sql Command string passed in. 
+            </summary>
+            <param name="Tablename">The name for the table generated or the base names</param>
+            <param name="Command"></param>
+            <param name="Parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteDataSet(System.String,System.String,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a SQL command against the server and returns a DataSet of the result
+            </summary>
+            <param name="command"></param>
+            <param name="parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteDataSet(System.Data.DataSet,System.String,System.Data.Common.DbCommand,System.Data.Common.DbParameter[])">
+            <summary>
+            Returns a DataSet from a Sql Command string passed in.
+            </summary>
+            <param name="Tablename"></param>
+            <param name="Command"></param>
+            <param name="Parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteDataSet(System.Data.DataSet,System.String,System.String,System.Data.Common.DbParameter[])">
+            <summary>
+            Returns a DataTable from a Sql Command string passed in.
+            </summary>
+            <param name="tablename"></param>
+            <param name="Command"></param>
+            <param name="parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteScalar(System.Data.Common.DbCommand,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a command and returns a scalar value from it
+            </summary>
+            <param name="SqlCommand">A SQL Command object</param>
+            <returns>value or null on failure</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.ExecuteScalar(System.String,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a Sql command and returns a single value from it.
+            </summary>
+            <param name="Sql">Sql string to execute</param>
+            <param name="Parameters">Any named SQL parameters</param>
+            <returns>Result value or null. Check ErrorMessage on Null if unexpected</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.CloseConnection(System.Data.Common.DbCommand)">
+            <summary>
+            Closes a connection
+            </summary>
+            <param name="Command"></param>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.CloseConnection">
+            <summary>
+            Closes an active connection. If a transaction is pending the 
+            connection is held open.
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.CreatePagingCommand(System.String,System.Int32,System.Int32,System.String,System.Data.Common.DbParameter[])">
+            <summary>
+            Sql 2005 specific semi-generic paging routine
+            </summary>
+            <param name="sql"></param>
+            <param name="pageSize"></param>
+            <param name="page"></param>
+            <param name="sortOrderFields"></param>
+            <param name="Parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.RunSqlScript(System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Executes a long SQL script that contains batches (GO commands). This code
+            breaks the script into individual commands and captures all execution errors.
+            
+            If ContinueOnError is false, operations are run inside of a transaction and
+            changes are rolled back. If true commands are accepted even if failures occur
+            and are not rolled back.
+            </summary>
+            <param name="Script"></param>
+            <param name="ScriptIsFile"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.GetEntity(System.Object,System.Data.Common.DbCommand,System.String)">
+            <summary>
+            Generic routine to retrieve an object from a database record
+            The object properties must match the database fields.
+            </summary>
+            <param name="entity"></param>
+            <param name="Table"></param>
+            <param name="KeyField"></param>
+            <param name="fieldsToSkip"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.GetEntity(System.Object,System.String,System.String,System.Object,System.String)">
+            <summary>
+            Generic routine to return an Entity that matches the field names of a 
+            table exactly.
+            </summary>
+            <param name="Entity"></param>
+            <param name="Table"></param>
+            <param name="KeyField"></param>
+            <param name="KeyValue"></param>
+            <param name="FieldsToSkip"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.UpdateEntity(System.Object,System.String,System.String,System.String)">
+            <summary>
+            Updates an entity object that has matching fields in the database for each
+            public property. Kind of a poor man's quick entity update mechanism.
+            </summary>
+            <param name="entity"></param>
+            <param name="table"></param>
+            <param name="keyField"></param>
+            <param name="fieldsToSkip"></param>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Westwind.Utilities.Data.DataAccessBase.UpdateEntity(System.Object,System.String,System.String,System.String,System.String)" -->
+        <!-- Badly formed XML comment ignored for member "M:Westwind.Utilities.Data.DataAccessBase.InsertEntity(System.Object,System.String,System.String)" -->
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.SaveEntity(System.Object,System.String,System.String,System.String)">
+            <summary>
+            Saves an enity into the database using insert or update as required.
+            Requires a keyfield that exists on both the entity and the database.
+            </summary>
+            <param name="entity"></param>
+            <param name="table"></param>
+            <param name="keyField"></param>
+            <param name="fieldsToSkip"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.BeginTransaction">
+            <summary>
+            Starts a new transaction on this connection/instance
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.CommitTransaction">
+            <summary>
+            Commits all changes to the database and ends the transaction
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.RollbackTransaction">
+            <summary>
+            Rolls back a transaction
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.SetError(System.String,System.Int32)">
+            <summary>
+            Sets the error message for the failure operations
+            </summary>
+            <param name="Message"></param>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.SetError(System.String)">
+            <summary>
+            Sets the error message and error number.
+            </summary>
+            <param name="message"></param>
+        </member>
+        <member name="M:Westwind.Utilities.Data.DataAccessBase.SetError">
+            <summary>
+            Sets the error message for failure operations.
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Data.DataAccessBase.ErrorMessage">
+            <summary>
+            An error message if a method fails
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Data.DataAccessBase.ErrorNumber">
+            <summary>
+            Optional error number returned by failed SQL commands
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Data.DataAccessBase.ConnectionString">
+            <summary>
+            ConnectionString for the data access component
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Data.DataAccessBase.Transaction">
+            <summary>
+            A SQL Transaction object that may be active. You can 
+            also set this object explcitly
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Data.DataAccessBase.Connection">
+            <summary>
+            The SQL Connection object used for connections
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Data.DataAccessBase.ExecuteWithSchema">
+            <summary>
+            Determines whether extended schema information is returned for 
+            queries from the server. Useful if schema needs to be returned
+            as part of DataSet XML creation 
+            </summary>
+        </member>
+        <member name="T:Westwind.Utilities.Data.SqlDataAccess">
+            <summary>
+            Basic low level Data Access Layer
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Data.SqlDataAccess.OpenConnection">
+            <summary>
+            Opens a Sql Connection based on the connection string.
+            Called internally but externally accessible. Sets the internal
+            _Connection property.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.SqlDataAccess.CreateCommand(System.String,System.Data.CommandType,System.Data.Common.DbParameter[])">
+            <summary>
+            Creates a Command object and opens a connection
+            </summary>
+            <param name="ConnectionString"></param>
+            <param name="sql"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.SqlDataAccess.CreateParameter(System.String,System.Object)">
+            <summary>
+            Creates a Sql Parameter for the specific provider
+            </summary>
+            <param name="parameterName"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.SqlDataAccess.ExecuteNonQuery(System.Data.Common.DbCommand,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a non-query command and returns the affected records
+            </summary>
+            <param name="Command">Command should be created with GetSqlCommand to have open connection</param>
+            <param name="Parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.SqlDataAccess.ExecuteReader(System.Data.Common.DbCommand,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a SQL Command object and returns a SqlDataReader object
+            </summary>
+            <param name="Command">Command should be created with GetSqlCommand and open connection</param>
+            <param name="Parameters"></param>
+            <returns></returns>
+            <returns>A SqlDataReader. Make sure to call Close() to close the underlying connection.</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.SqlDataAccess.ExecuteTable(System.String,System.Data.Common.DbCommand,System.Data.Common.DbParameter[])">
+            <summary>
+            Returns a DataTable from a Sql Command string passed in.
+            </summary>
+            <param name="Tablename"></param>
+            <param name="Command"></param>
+            <param name="Parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.SqlDataAccess.ExecuteDataSet(System.Data.DataSet,System.String,System.Data.Common.DbCommand,System.Data.Common.DbParameter[])">
+            <summary>
+            Returns a DataTable from a Sql Command string passed in.
+            </summary>
+            <param name="Tablename"></param>
+            <param name="Command"></param>
+            <param name="Parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.SqlDataAccess.ExecuteScalar(System.Data.Common.DbCommand,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a command and returns a scalar value from it
+            </summary>
+            <param name="SqlCommand">A SQL Command object</param>
+            <returns>value or null on failure</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.SqlDataAccess.ExecuteScalar(System.String,System.Data.Common.DbParameter[])">
+            <summary>
+            Executes a Sql command and returns a single value from it.
+            </summary>
+            <param name="Sql">Sql string to execute</param>
+            <param name="Parameters">Any named SQL parameters</param>
+            <returns>Result value or null. Check ErrorMessage on Null if unexpected</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Data.SqlDataAccess.CloseConnection(System.Data.Common.DbCommand)">
+            <summary>
+            Closes a connection
+            </summary>
+            <param name="Command"></param>
+        </member>
+        <member name="M:Westwind.Utilities.Data.SqlDataAccess.CloseConnection">
+            <summary>
+            Closes an active connection. If a transaction is pending the 
+            connection is held open.
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Data.SqlDataAccess.CreatePagingCommand(System.String,System.Int32,System.Int32,System.String,System.Data.Common.DbParameter[])">
+            <summary>
+            Sql 2005 specific semi-generic paging routine
+            </summary>
+            <param name="sql"></param>
+            <param name="pageSize"></param>
+            <param name="page"></param>
+            <param name="sortOrderFields"></param>
+            <param name="Parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Westwind.Utilities.Encryption">
+            <summary>
+            A simple encryption class that can be used to two-way encode/decode strings and byte buffers
+            with single method calls.
+            </summary>
+        </member>
+        <member name="F:Westwind.Utilities.Encryption.Key">
+            <summary>
+            Replace this value with some unique key of your own
+            Best set this in your App start up in a Static constructor
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Encryption.EncryptBytes(System.Byte[],System.String)">
+            <summary>
+            Encodes a stream of bytes using DES encryption with a pass key. Lowest level method that 
+            handles all work.
+            </summary>
+            <param name="InputString"></param>
+            <param name="EncryptionKey"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Encryption.EncryptBytes(System.String,System.String)">
+            <summary>
+            Encrypts a string into bytes using DES encryption with a Passkey. 
+            </summary>
+            <param name="InputString"></param>
+            <param name="EncryptionKey"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Encryption.EncryptString(System.String,System.String)">
+            <summary>
+            Encrypts a string using Triple DES encryption with a two way encryption key.String is returned as Base64 encoded value
+            rather than binary.
+            </summary>
+            <param name="InputString"></param>
+            <param name="EncryptionKey"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Encryption.DecryptBytes(System.Byte[],System.String)">
+            <summary>
+            Decrypts a Byte array from DES with an Encryption Key.
+            </summary>
+            <param name="DecryptBuffer"></param>
+            <param name="EncryptionKey"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Encryption.DecryptString(System.String,System.String)">
+            <summary>
+            Decrypts a string using DES encryption and a pass key that was used for 
+            encryption.
+            <seealso>Class wwEncrypt</seealso>
+            </summary>
+            <param name="DecryptString"></param>
+            <param name="EncryptionKey"></param>
+            <returns>String</returns>
+        </member>
+        <member name="M:Westwind.Utilities.Encryption.ComputeHash(System.String,System.String,System.Byte[])">
+            <summary>
+            Generates a hash for the given plain text value and returns a
+            base64-encoded result. Before the hash is computed, a random salt
+            is generated and appended to the plain text. This salt is stored at
+            the end of the hash value, so it can be used later for hash
+            verification.
+            </summary>
+            <param name="plainText">
+            Plaintext value to be hashed. 
+            </param>
+            <param name="hashAlgorithm">
+            Name of the hash algorithm. Allowed values are: "MD5", "SHA1",
+            "SHA256", "SHA384", and "SHA512" (if any other value is specified
+            MD5 hashing algorithm will be used). This value is case-insensitive.
+            </param>
+            <param name="saltBytes">
+            Salt bytes. This parameter can be null, in which case a random salt
+            value will be generated.
+            </param>
+            <returns>
+            Hash value formatted as a base64-encoded string.
+            </returns>
+            <remarks>
+            ComputeHash code provided as an example by Obviex at
+            http://www.obviex.com/samples/hash.aspx
+            As noted by Obviex themselves, code is definitely not optimally efficient.
+            Should performance requirements necessitate improvement, this should
+            be improved.
+            </remarks>
+        </member>
+        <member name="M:Westwind.Utilities.Encryption.GZipMemory(System.Byte[])">
+            <summary>
+            GZip encodes a memory buffer to a compressed memory buffer
+            </summary>
+            <param name="Buffer"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Encryption.GZipMemory(System.String)">
+            <summary>
+            Encodes a string to a gzip compressed memory buffer
+            </summary>
+            <param name="Input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Encryption.GZipMemory(System.String,System.Boolean)">
+            <summary>
+            Encodes a file to a gzip memory buffer
+            </summary>
+            <param name="Filename"></param>
+            <param name="IsFile"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Encryption.GZipFile(System.String,System.String)">
+            <summary>
+            Encodes one file to another file that is gzip compressed.
+            File is overwritten if it exists and not locked.
+            </summary>
+            <param name="Filename"></param>
+            <param name="OutputFile"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Westwind.Utilities.ReflectionUtils">
+            <summary>
+            Collection of Reflection and type conversion related utility functions
+            </summary>
+        </member>
+        <member name="F:Westwind.Utilities.ReflectionUtils.MemberAccess">
+            <summary>
+            Binding Flags constant to be reused for all Reflection access methods.
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.GetProperty(System.Object,System.String)">
+            <summary>
+            Retrieve a property value from an object dynamically. This is a simple version
+            that uses Reflection calls directly. It doesn't support indexers.
+            </summary>
+            <param name="instance">Object to make the call on</param>
+            <param name="property">Property to retrieve</param>
+            <returns>Object - cast to proper type</returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.GetField(System.Object,System.String)">
+            <summary>
+            Retrieve a field dynamically from an object. This is a simple implementation that's
+            straight Reflection and doesn't support indexers.
+            </summary>
+            <param name="Object">Object to retreve Field from</param>
+            <param name="Property">name of the field to retrieve</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.GetPropertyInternal(System.Object,System.String)">
+            <summary>
+            Parses Properties and Fields including Array and Collection references.
+            Used internally for the 'Ex' Reflection methods.
+            </summary>
+            <param name="Parent"></param>
+            <param name="Property"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.SetPropertyInternal(System.Object,System.String,System.Object)">
+            <summary>
+            Parses Properties and Fields including Array and Collection references.
+            </summary>
+            <param name="Parent"></param>
+            <param name="Property"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.GetPropertyEx(System.Object,System.String)">
+            <summary>
+            Returns a property or field value using a base object and sub members including . syntax.
+            For example, you can access: oCustomer.oData.Company with (this,"oCustomer.oData.Company")
+            This method also supports indexers in the Property value such as:
+            Customer.DataSet.Tables["Customers"].Rows[0]
+            </summary>
+            <param name="Parent">Parent object to 'start' parsing from. Typically this will be the Page.</param>
+            <param name="Property">The property to retrieve. Example: 'Customer.Entity.Company'</param>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Westwind.Utilities.ReflectionUtils.GetPropertyInfoEx(System.Object,System.String)" -->
+        <member name="M:Westwind.Utilities.ReflectionUtils.GetPropertyInfoInternal(System.Object,System.String)">
+            <summary>
+            Returns a PropertyInfo structure from an extended Property reference
+            </summary>
+            <param name="Parent"></param>
+            <param name="Property"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.SetProperty(System.Object,System.String,System.Object)">
+            <summary>
+            Sets the property on an object. This is a simple method that uses straight Reflection 
+            and doesn't support indexers.
+            </summary>
+            <param name="obj">Object to set property on</param>
+            <param name="property">Name of the property to set</param>
+            <param name="value">value to set it to</param>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.SetField(System.Object,System.String,System.Object)">
+            <summary>
+            Sets the field on an object. This is a simple method that uses straight Reflection 
+            and doesn't support indexers.
+            </summary>
+            <param name="obj">Object to set property on</param>
+            <param name="property">Name of the field to set</param>
+            <param name="value">value to set it to</param>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.SetPropertyEx(System.Object,System.String,System.Object)">
+            <summary>
+            Sets a value on an object. Supports . syntax for named properties
+            (ie. Customer.Entity.Company) as well as indexers.
+            </summary>
+            <param name="Object Parent">
+            Object to set the property on.
+            </param>
+            <param name="String Property">
+            Property to set. Can be an object hierarchy with . syntax and can 
+            include indexers. Examples: Customer.Entity.Company, 
+            Customer.DataSet.Tables["Customers"].Rows[0]
+            </param>
+            <param name="Object Value">
+            Value to set the property to
+            </param>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.CallMethod(System.Object,System.String,System.Type[],System.Object[])">
+            <summary>
+            Calls a method on an object dynamically. This version requires explicit
+            specification of the parameter type signatures.
+            </summary>
+            <param name="instance">Instance of object to call method on</param>
+            <param name="method">The method to call as a stringToTypedValue</param>
+            <param name="parameterTypes">Specify each of the types for each parameter passed. 
+            You can also pass null, but you may get errors for ambiguous methods signatures
+            when null parameters are passed</param>
+            <param name="parms">any variable number of parameters.</param>        
+            <returns>object</returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.CallMethod(System.Object,System.String,System.Object[])">
+            <summary>
+            Calls a method on an object dynamically. 
+            
+            This version doesn't require specific parameter signatures to be passed. 
+            Instead parameter types are inferred based on types passed. Note that if 
+            you pass a null parameter, type inferrance cannot occur and if overloads
+            exist the call may fail. if so use the more detailed overload of this method.
+            </summary> 
+            <param name="instance">Instance of object to call method on</param>
+            <param name="method">The method to call as a stringToTypedValue</param>
+            <param name="parameterTypes">Specify each of the types for each parameter passed. 
+            You can also pass null, but you may get errors for ambiguous methods signatures
+            when null parameters are passed</param>
+            <param name="parms">any variable number of parameters.</param>        
+            <returns>object</returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.CallMethodEx(System.Object,System.String,System.Object[])">
+            <summary>
+            Calls a method on an object with extended . syntax (object: this Method: Entity.CalculateOrderTotal)
+            </summary>
+            <param name="parent"></param>
+            <param name="method"></param>
+            <param name="params"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.CreateInstanceFromType(System.Type,System.Object[])">
+            <summary>
+            Creates an instance from a type by calling the parameterless constructor.
+            
+            Note this will not work with COM objects - continue to use the Activator.CreateInstance
+            for COM objects.
+            <seealso>Class wwUtils</seealso>
+            </summary>
+            <param name="typeToCreate">
+            The type from which to create an instance.
+            </param>
+            <returns>object</returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.CreateInstanceFromString(System.String,System.Object[])">
+            <summary>
+            Creates an instance of a type based on a string. Assumes that the type's
+            </summary>
+            <param name="typeName"></param>
+            <param name="args"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.GetTypeFromName(System.String)">
+            <summary>
+            Helper routine that looks up a type name and tries to retrieve the
+            full type reference in the actively executing assemblies.
+            </summary>
+            <param name="typeName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.CreateComInstance(System.String)">
+            <summary>
+            Creates a COM instance from a ProgID. Loads either
+            Exe or DLL servers.
+            </summary>
+            <param name="progId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.TypedValueToString(System.Object,System.Globalization.CultureInfo)">
+            <summary>
+            Converts a type to string if possible. This method supports an optional culture generically on any value.
+            It calls the ToString() method on common types and uses a type converter on all other objects
+            if available
+            </summary>
+            <param name="rawValue">The Value or Object to convert to a string</param>
+            <param name="culture">Culture for numeric and DateTime values</param>
+            <returns>string</returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.TypedValueToString(System.Object)">
+            <summary>
+            Converts a type to string if possible. This method uses the current culture for numeric and DateTime values.
+            It calls the ToString() method on common types and uses a type converter on all other objects
+            if available.
+            </summary>
+            <param name="rawValue">The Value or Object to convert to a string</param>
+            <param name="Culture">Culture for numeric and DateTime values</param>
+            <returns>string</returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.StringToTypedValue(System.String,System.Type,System.Globalization.CultureInfo)">
+            <summary>
+            Turns a string into a typed value generically.
+            Explicitly assigns common types and falls back
+            on using type converters for unhandled types.         
+            
+            Common uses: 
+            * UI -&gt; to data conversions
+            * Parsers
+            <seealso>Class ReflectionUtils</seealso>
+            </summary>
+            <param name="sourceString">
+            The string to convert from
+            </param>
+            <param name="targetType">
+            The type to convert to
+            </param>
+            <param name="culture">
+            Culture used for numeric and datetime values.
+            </param>
+            <returns>object. Throws exception if it cannot be converted.</returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.StringToTypedValue(System.String,System.Type)">
+            <summary>
+            Turns a string into a typed value generically.
+            Explicitly assigns common types and falls back
+            on using type converters for unhandled types.         
+            
+            Common uses: 
+            * UI -&gt; to data conversions
+            * Parsers
+            <seealso>Class ReflectionUtils</seealso>
+            </summary>
+            <param name="sourceString">
+            The string to convert from
+            </param>
+            <param name="targetType">
+            The type to convert to
+            </param>
+            <returns>object. Throws exception if it cannot be converted.</returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.StringToTypedValue``1(System.String,System.Globalization.CultureInfo)">
+            <summary>
+            Generic version allow for automatic type conversion without the explicit type
+            parameter
+            </summary>
+            <typeparam name="T">Type to be converted to</typeparam>
+            <param name="sourceString">input string value to be converted</param>
+            <param name="culture">Culture applied to conversion</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.StringToTypedValue``1(System.String)">
+            <summary>
+            Generic version allow for automatic type conversion without the explicit type
+            parameter. Defaults conversion to CurrentCulture.
+            </summary>
+            <typeparam name="T">Type to be converted to</typeparam>
+            <param name="sourceString">input string value to be converted</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.GetEnumList(System.Type,System.Boolean)">
+            <summary>
+            Returns a List of KeyValuePair object
+            </summary>
+            <param name="enumeration"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.GetStaticProperty(System.String,System.String)">
+            <summary>
+            Retrieves a value from  a static property by specifying a type full name and property
+            </summary>
+            <param name="typeName">Full type name (namespace.class)</param>
+            <param name="property">Property to get value from</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.GetStaticProperty(System.Type,System.String)">
+            <summary>
+            Returns a static property from a given type
+            </summary>
+            <param name="type">Type instance for the static property</param>
+            <param name="property">Property name as a string</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.GetPropertyCom(System.Object,System.String)">
+            <summary>
+            Retrieve a dynamic 'non-typelib' property
+            </summary>
+            <param name="instance">Object to make the call on</param>
+            <param name="property">Property to retrieve</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.GetPropertyExCom(System.Object,System.String)">
+            <summary>
+            Returns a property or field value using a base object and sub members including . syntax.
+            For example, you can access: oCustomer.oData.Company with (this,"oCustomer.oData.Company")
+            </summary>
+            <param name="parent">Parent object to 'start' parsing from.</param>
+            <param name="property">The property to retrieve. Example: 'oBus.oData.Company'</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.SetPropertyCom(System.Object,System.String,System.Object)">
+            <summary>
+            Sets the property on an object.
+            </summary>
+            <param name="Object">Object to set property on</param>
+            <param name="Property">Name of the property to set</param>
+            <param name="Value">value to set it to</param>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.SetPropertyExCom(System.Object,System.String,System.Object)">
+            <summary>
+            Sets the value of a field or property via Reflection. This method alws 
+            for using '.' syntax to specify objects multiple levels down.
+            
+            ReflectionUtils.SetPropertyEx(this,"Invoice.LineItemsCount",10)
+            
+            which would be equivalent of:
+            
+            Invoice.LineItemsCount = 10;
+            </summary>
+            <param name="Object Parent">
+            Object to set the property on.
+            </param>
+            <param name="String Property">
+            Property to set. Can be an object hierarchy with . syntax.
+            </param>
+            <param name="Object Value">
+            Value to set the property to
+            </param>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.CallMethodCom(System.Object,System.String,System.Object[])">
+            <summary>
+            Wrapper method to call a 'dynamic' (non-typelib) method
+            on a COM object
+            </summary>
+            <param name="params"></param>
+            1st - Method name, 2nd - 1st parameter, 3rd - 2nd parm etc.
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.ReflectionUtils.CallMethodExCom(System.Object,System.String,System.Object[])">
+            <summary>
+            Calls a method on a COM object with '.' syntax (Customer instance and Address.DoSomeThing method)
+            </summary>
+            <param name="parent">the object instance on which to call method</param>
+            <param name="method">The method or . syntax path to the method (Address.Parse)</param>
+            <param name="parms">Any number of parameters</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.SerializationUtils.SerializeObject(System.Object,System.String,System.Boolean)">
+            <summary>
+            Serializes an object instance to a file.
+            </summary>
+            <param name="instance">the object instance to serialize</param>
+            <param name="fileName"></param>
+            <param name="binarySerialization">determines whether XML serialization or binary serialization is used</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.SerializationUtils.SerializeObject(System.Object,System.Xml.XmlTextWriter,System.Boolean)">
+            <summary>
+            Overload that supports passing in an XML TextWriter. 
+            </summary>
+            <remarks>
+            Note the Writer is not closed when serialization is complete 
+            so the caller needs to handle closing.
+            </remarks>
+            <param name="instance">object to serialize</param>
+            <param name="writer">XmlTextWriter instance to write output to</param>       
+            <param name="throwExceptions">Determines whether false is returned on failure or an exception is thrown</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.SerializationUtils.SerializeObject(System.Object,System.String@)">
+            <summary>
+            Serializes an object into an XML string variable for easy 'manual' serialization
+            </summary>
+            <param name="instance">object to serialize</param>
+            <param name="xmlResultString">resulting XML string passed as an out parameter</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:Westwind.Utilities.SerializationUtils.SerializeObject(System.Object,System.String@,System.Boolean)">
+            <summary>
+            Serializes an object into a string variable for easy 'manual' serialization
+            </summary>
+            <param name="instance"></param>
+            <param name="xmlResultString">Out parm that holds resulting XML string</param>
+            <param name="throwExceptions">If true causes exceptions rather than returning false</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.SerializationUtils.SerializeObject(System.Object,System.Byte[]@,System.Boolean)">
+            <summary>
+            Serializes an object instance to a file.
+            </summary>
+            <param name="instance">the object instance to serialize</param>
+            <param name="Filename"></param>
+            <param name="BinarySerialization">determines whether XML serialization or binary serialization is used</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.SerializationUtils.SerializeObjectToString(System.Object,System.Boolean)">
+            <summary>
+            Serializes an object to an XML string. Unlike the other SerializeObject overloads
+            this methods *returns a string* rather than a bool result!
+            </summary>
+            <param name="instance"></param>
+            <param name="throwExceptions">Determines if a failure throws or returns null</param>
+            <returns>
+            null on error otherwise the Xml String.         
+            </returns>
+            <remarks>
+            If null is passed in null is also returned so you might want
+            to check for null before calling this method.
+            </remarks>
+        </member>
+        <member name="M:Westwind.Utilities.SerializationUtils.DeSerializeObject(System.String,System.Type,System.Boolean)">
+            <summary>
+            Deserializes an object from file and returns a reference.
+            </summary>
+            <param name="fileName">name of the file to serialize to</param>
+            <param name="objectType">The Type of the object. Use typeof(yourobject class)</param>
+            <param name="binarySerialization">determines whether we use Xml or Binary serialization</param>
+            <returns>Instance of the deserialized object or null. Must be cast to your object type</returns>
+        </member>
+        <member name="M:Westwind.Utilities.SerializationUtils.DeSerializeObject(System.String,System.Type,System.Boolean,System.Boolean)">
+            <summary>
+            Deserializes an object from file and returns a reference.
+            </summary>
+            <param name="fileName">name of the file to serialize to</param>
+            <param name="objectType">The Type of the object. Use typeof(yourobject class)</param>
+            <param name="binarySerialization">determines whether we use Xml or Binary serialization</param>
+            <param name="throwExceptions">determines whether failure will throw rather than return null on failure</param>
+            <returns>Instance of the deserialized object or null. Must be cast to your object type</returns>
+        </member>
+        <member name="M:Westwind.Utilities.SerializationUtils.DeSerializeObject(System.Xml.XmlReader,System.Type)">
+            <summary>
+            Deserialize an object from an XmlReader object.
+            </summary>
+            <param name="reader"></param>
+            <param name="objectType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.SerializationUtils.DeSerializeObject(System.Byte[],System.Type,System.Boolean)">
+            <summary>
+            Deseializes a binary serialized object from  a byte array
+            </summary>
+            <param name="buffer"></param>
+            <param name="objectType"></param>
+            <param name="throwExceptions"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.SerializationUtils.ObjectToString(System.Object,System.String,Westwind.Utilities.ObjectToStringTypes)">
+            <summary>
+            Returns a string of all the field value pairs of a given object.
+            Works only on non-statics.
+            </summary>
+            <param name="instanc"></param>
+            <param name="separator"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Westwind.Utilities.StringUtils">
+            <summary>
+            String utility class that provides a host of string related operations
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.FixHTMLForDisplay(System.String)">
+            <summary>
+            Replaces and  and Quote characters to HTML safe equivalents.
+            </summary>
+            <param name="html">HTML to convert</param>
+            <returns>Returns an HTML string of the converted text</returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.StripHtml(System.String)">
+            <summary>
+            Strips HTML tags out of an HTML string and returns just the text.
+            </summary>
+            <param name="html">Html String</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.DisplayMemo(System.String)">
+            <summary>
+            Fixes a plain text field for display as HTML by replacing carriage returns 
+            with the appropriate br and p tags for breaks.
+            </summary>
+            <param name="htmlText">Input string</param>
+            <returns>Fixed up string</returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.DisplayMemoEncoded(System.String)">
+            <summary>
+            Method that handles handles display of text by breaking text.
+            Unlike the non-encoded version it encodes any embedded HTML text
+            </summary>
+            <param name="text"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.HtmlEncode(System.String)">
+            <summary>
+            HTML-encodes a string and returns the encoded string.
+            </summary>
+            <param name="text">The text string to encode. </param>
+            <returns>The HTML-encoded text.</returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.ExtractString(System.String,System.String,System.String,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Extracts a string from between a pair of delimiters. Only the first 
+            instance is found.
+            </summary>
+            <param name="source">Input String to work on</param>
+            <param name="StartDelim">Beginning delimiter</param>
+            <param name="endDelim">ending delimiter</param>
+            <param name="CaseInsensitive">Determines whether the search for delimiters is case sensitive</param>
+            <returns>Extracted string or ""</returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.ExtractString(System.String,System.String,System.String,System.Boolean)">
+            <summary>
+            Extracts a string from between a pair of delimiters. Only the first
+            instance is found.
+            <seealso>Class wwUtils</seealso>
+            </summary>
+            <param name="source">
+            Input String to work on
+            </param>
+            <param name="beginDelim"></param>
+            <param name="endDelim">
+            ending delimiter
+            </param>
+            <param name="CaseInSensitive"></param>
+            <returns>String</returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.ExtractString(System.String,System.String,System.String)">
+            <summary>
+            Extracts a string from between a pair of delimiters. Only the first 
+            instance is found. Search is case insensitive.
+            </summary>
+            <param name="source">
+            Input String to work on
+            </param>
+            <param name="StartDelim">
+            Beginning delimiter
+            </param>
+            <param name="endDelim">
+            ending delimiter
+            </param>
+            <returns>Extracted string or string.Empty</returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.ReplaceStringInstance(System.String,System.String,System.String,System.Int32,System.Boolean)">
+            <summary>
+            String replace function that support
+            </summary>
+            <param name="origString">Original input string</param>
+            <param name="findString">The string that is to be replaced</param>
+            <param name="replaceWith">The replacement string</param>
+            <param name="instance">Instance of the FindString that is to be found. if Instance = -1 all are replaced</param>
+            <param name="caseInsensitive">Case insensitivity flag</param>
+            <returns>updated string or original string if no matches</returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.ReplaceString(System.String,System.String,System.String,System.Boolean)">
+            <summary>
+            Replaces a substring within a string with another substring with optional case sensitivity turned off.
+            </summary>
+            <param name="origString">String to do replacements on</param>
+            <param name="findString">The string to find</param>
+            <param name="replaceString">The string to replace found string wiht</param>
+            <param name="caseInsensitive">If true case insensitive search is performed</param>
+            <returns>updated string or original string if no matches</returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.Empty(System.String)">
+            <summary>
+            Determines whether a string is empty (null or zero length)
+            </summary>
+            <param name="text">Input string</param>
+            <returns>true or false</returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Westwind.Utilities.StringUtils.Empty(System.Object)" -->
+        <member name="M:Westwind.Utilities.StringUtils.TrimStart(System.String,System.String,System.Boolean)">
+            <summary>
+            Trims a sub string from a string
+            </summary>
+            <param name="text"></param>
+            <param name="textToTrim"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.Replicate(System.String,System.Int32)">
+            <summary>
+            Replicates an input string n number of times
+            </summary>
+            <param name="input"></param>
+            <param name="charCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.Replicate(System.Char,System.Int32)">
+            <summary>
+            Replicates a character n number of times and returns a string
+            </summary>
+            <param name="charCount"></param>
+            <param name="character"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.ProperCase(System.String)">
+            <summary>
+            Return a string in proper Case format
+            </summary>
+            <param name="Input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.ToCamelCase(System.String)">
+            <summary>
+            Takes a phrase and turns it into CamelCase text.
+            White Space, punctuation and separators are stripped
+            </summary>
+            <param name="?"></param>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.FromCamelCase(System.String)">
+            <summary>
+            Tries to create a phrase string from CamelCase text.
+            Will place spaces before capitalized letters.
+            
+            Note that this method may not work for round tripping 
+            ToCamelCase calls, since ToCamelCase strips more characters
+            than just spaces.
+            </summary>
+            <param name="camelCase"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.TerminateString(System.String,System.String)">
+            <summary>
+            Terminates a string with the given end string/character, but only if the
+            value specified doesn't already exist and the string is not empty.
+            </summary>
+            <param name="?"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.TrimTo(System.String,System.Int32)">
+            <summary>
+            Trims a string to a specific number of max characters
+            </summary>
+            <param name="value"></param>
+            <param name="charCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.NormalizeIndentation(System.String)">
+            <summary>
+            Strips any common white space from all lines of text that have the same
+            common white space text. Effectively removes common code indentation from
+            code blocks for example so you can get a left aligned code snippet.
+            </summary>
+            <param name="code"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.TextAbstract(System.String,System.Int32)">
+            <summary>
+            Returns an abstract of the provided text by returning up to Length characters
+            of a text string. If the text is truncated a ... is appended.
+            </summary>
+            <param name="text">Text to abstract</param>
+            <param name="length">Number of characters to abstract to</param>
+            <returns>string</returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.HtmlAbstract(System.String,System.Int32)">
+            <summary>
+            Creates an Abstract from an HTML document. Strips the 
+            HTML into plain text, then creates an abstract.
+            </summary>
+            <param name="html"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.LogString(System.String,System.String)">
+            <summary>
+            Simple Logging method that allows quickly writing a string to a file
+            </summary>
+            <param name="output"></param>
+            <param name="filename"></param>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.NewStringId">
+            <summary>
+            Creates short string id based on a GUID hashcode.
+            Not guaranteed to be unique across machines, but unlikely
+            to duplicate in medium volume situations.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.ParseInt(System.String,System.Int32,System.IFormatProvider)">
+            <summary>
+            Parses an string into an integer. If the value can't be parsed
+            a default value is returned instead
+            </summary>
+            <param name="input"></param>
+            <param name="defaultValue"></param>
+            <param name="formatProvider"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.ParseInt(System.String,System.Int32)">
+            <summary>
+            Parses an string into an integer. If the value can't be parsed
+            a default value is returned instead
+            </summary>
+            <param name="input"></param>
+            <param name="defaultValue"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.ParseDecimal(System.String,System.Decimal,System.IFormatProvider)">
+            <summary>
+            Parses an string into an decimal. If the value can't be parsed
+            a default value is returned instead
+            </summary>
+            <param name="input"></param>
+            <param name="defaultValue"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.StripNonNumber(System.String)">
+            <summary>
+            Strips all non digit values from a string and only
+            returns the numeric string.
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.StringToStream(System.String,System.Text.Encoding)">
+            <summary>
+            Creates a Stream from a string. Internally creates
+            a memory stream and returns that.
+            </summary>
+            <param name="text"></param>
+            <param name="encoding"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.StringToStream(System.String)">
+            <summary>
+            Creates a Stream from a string. Internally creates
+            a memory stream and returns that.
+            </summary>
+            <param name="text"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.GetProperty(System.String,System.String)">
+            <summary>
+            Retrieves a value from an XML-like string
+            </summary>
+            <param name="propertyString"></param>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.SetProperty(System.String,System.String,System.String)">
+            <summary>
+            
+            </summary>
+            <param name="propertyString"></param>
+            <param name="key"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.UrlEncode(System.String)">
+            <summary>
+            UrlEncodes a string without the requirement for System.Web
+            </summary>
+            <param name="String"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.UrlDecode(System.String)">
+            <summary>
+            UrlDecodes a string without requiring System.Web
+            </summary>
+            <param name="text">String to decode.</param>
+            <returns>decoded string</returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.GetUrlEncodedKey(System.String,System.String)">
+            <summary>
+            Retrieves a value by key from a UrlEncoded string.
+            </summary>
+            <param name="urlEncoded">UrlEncoded String</param>
+            <param name="key">Key to retrieve value for</param>
+            <returns>returns the value or "" if the key is not found or the value is blank</returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.SetUrlEncodedKey(System.String,System.String,System.String)">
+            <summary>
+            Allows setting of a value in a UrlEncoded string. If the key doesn't exist
+            a new one is set, if it exists it's replaced with the new value.
+            </summary>
+            <param name="urlEncoded">A UrlEncoded string of key value pairs</param>
+            <param name="key"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.Base36Encode(System.Int64)">
+            <summary>
+            Encodes an integer into a string by mapping to alpha and digits (36 chars)
+            chars are embedded as lower case
+            
+            Example: 4zx12ss
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.StringUtils.Base36Decode(System.String)">
+            <summary>
+            Decodes a base36 encoded string to an integer
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Westwind.Utilities.Configuration.XmlFileConfigurationProvider`1">
+            <summary>
+            Reads and Writes configuration settings in .NET config files and 
+            sections. Allows reading and writing to default or external files 
+            and specification of the configuration section that settings are
+            applied to.
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.XmlFileConfigurationProvider`1.Read``1">
+            <summary>
+            Return 
+            </summary>
+            <typeparam name="TAppConfig"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.XmlFileConfigurationProvider`1.Write(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Write configuration to XmlConfigurationFile location
+            </summary>
+            <param name="config"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.XmlFileConfigurationProvider`1.XmlConfigurationFile">
+            <summary>
+            Optional - the Configuration file where configuration settings are
+            stored in. If not specified uses the default Configuration Manager
+            and its default store.
+            </summary>
+        </member>
+    </members>
+</doc>
