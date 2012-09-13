@@ -44,12 +44,13 @@ To use you simply create a class and implement this minimal code:
 	{
 	    public ApplicationConfiguration() : base(null,"MyConfiguration")
 	    { }
+	    
+	    // Create properties to read or persist to/from the config store
+	    public string ApplicationTitle { get; set; }
+	    public string ConnectionString {get; set; }
+	    public DebugModes DebugMode {get; set; }  // enum
+	    public int MaxPageItems {get; set; }   // number
 
-		// default implementation - web.config or app.config and specify a section to write to	    
-	    public ApplicationConfigurationIConfigurationProvider provider) 
-	    		: base(null,"MyConfiguration")
-	    { }
-	
 	    // put property initialization into this separate method
 	    // Base constructors calls this to initialize instance before reading from store
 	    public override void Initialize()
@@ -59,12 +60,6 @@ To use you simply create a class and implement this minimal code:
 	           DebugMode = DebugModes.ApplicationErrorMessage;
 	           MaxPageItems = 20;
 	    }
-	
-	    // Create properties to read or persist to/from the config store
-	    public string ApplicationTitle { get; set; }
-	    public string ConnectionString {get; set; }
-	    public DebugModes DebugMode {get; set; }  // enum
-	    public int MaxPageItems {get; set; }   // number
 	}
 
 This example maps the class properties to a standard web.config 
@@ -77,7 +72,7 @@ available.
 To use the class you simply create an instance:
 
 	// Create an instance - typically you'd use a static singleton instance
-	var config = new ApplicationConfiguration(null);
+	var config = new ApplicationConfiguration();
 	
 	// Read values - retrieved from web.config/MyApplicationConfiguration
 	string title = config.ApplicationTitle;
@@ -101,7 +96,7 @@ or, more effectively, create a static instance in application scope:
 	    static App()
 	    {
 	        /// Load the properties from the Config store
-	        Configuration = new ApplicationConfiguration(null);
+	        Configuration = new ApplicationConfiguration();
 	    }
 	}
 
@@ -130,12 +125,13 @@ the default constructor shown above you can use the following:
 	    /// <summary>
 	    /// Always implement a default constructor so new instances
 	    /// can be created by the various de-serialization config schemes.
+            /// This is not necessary for .config files but required for
+            /// Xml files, string and database providers.            
 	    /// </summary>
 	    public ApplicationConfiguration() 
 	    {
 	         this.Initialize()
 	    }
-
 
 	    /// <summary>
 	    /// By convention a second constructor that takes a Config Provider
@@ -154,7 +150,7 @@ the default constructor shown above you can use the following:
 
 	        if (provider == null)
 	        {
-	            // create the customized default configuration so you only have to configure this in one place
+	            // create any custom provider instance here
 	            this.Provider = new ConfigurationFileConfigurationProvider<ApplicationConfiguration>()
 	            {
 	                PropertiesToEncrypt = "MailServerPassword,ConnectionString",
@@ -189,14 +185,13 @@ the default constructor shown above you can use the following:
 Here an ConfigurationFileProvider is explictly created when the provider is passed as null.
 To fire this custom code:
 
-	// Initialize global reference
+	// Initialize global reference - IMPORTANT: Note the non-default (null) parameter
 	App.Configuration = new MyApplicationConfiguration(null);
 
 and to use it in your application:
 
 	var title = App.Configuration.ApplicationTitle;
 	DebugModes mode = App.Configuration.DebugMode;
-
 
 ##Multiple Configuration Stores
 To create multiple configuration stores simply create multiple classes and 
