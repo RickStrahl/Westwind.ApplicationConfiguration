@@ -132,7 +132,7 @@ namespace Westwind.Utilities.Configuration
                     SetError(data.ErrorMessage);
                     return null;
                 }
-            }            
+            }
             catch (SqlException ex)
             {
                 if (ex.Number == 208)
@@ -155,27 +155,34 @@ namespace Westwind.Utilities.Configuration
                 }
 
             }
-//            catch (SqlCeException ex)
-//            {
-//                if (ex.ErrorCode == -2147467259)
-//                {
-//                    sql =
-//@"CREATE TABLE [" + Tablename + @"] ( [id] [int] , [ConfigData] [ntext] )";
-//                    try
-//                    {
-//                        data.ExecuteNonQuery(sql);
-//                    }
-//                    catch(Exception ex2)
-//                    {
-//                        return null;
-//                    }
+            catch (DbException dbEx)
+            {
+                // SQL CE Table doesn't exist
+                if (dbEx.ErrorCode == -2147467259)
+                {
+                        sql = String.Format(
+                            @"CREATE TABLE [{0}] ( [id] [int] , [ConfigData] [ntext] )", 
+                            Tablename);
+                        try
+                        {
+                            data.ExecuteNonQuery(sql);
+                        }
+                        catch (Exception ex2)
+                        {
+                            return null;
+                        }
 
-//                    // try again if we were able to create the table 
-//                    return Read<T>();
-//                }
+                        // try again if we were able to create the table 
+                        var inst = Read<T>();
+                        
+                        // if we got it write it to the db
+                        Write(inst);
 
-//            }
-            catch
+                        return inst;
+                }
+                return null;
+            }
+            catch (Exception ex)
             {
                 return null;
             }
@@ -221,7 +228,9 @@ namespace Westwind.Utilities.Configuration
         {
             SqlDataAccess data = new SqlDataAccess(ConnectionString,ProviderName);
 
-            string sql = "Update [" + Tablename + "] set ConfigData=@ConfigData where id=" + Key.ToString();
+            string sql = String.Format(
+                "Update [{0}] set ConfigData=@ConfigData where id={1}", 
+                Tablename, Key);
             
             string xml = WriteAsString(config);
 
@@ -232,9 +241,9 @@ namespace Westwind.Utilities.Configuration
             }
             catch
             {
-                sql =
-    @"CREATE TABLE [" + Tablename + @"]  
-( [id] [int] , [ConfigData] [ntext] COLLATE SQL_Latin1_General_CP1_CI_AS)";
+                sql = String.Format(
+                        @"CREATE TABLE [{0}] ( [id] [int] , [ConfigData] [ntext] COLLATE SQL_Latin1_General_CP1_CI_AS)", 
+                        Tablename);
                 try
                 {
                     data.ExecuteNonQuery(sql);

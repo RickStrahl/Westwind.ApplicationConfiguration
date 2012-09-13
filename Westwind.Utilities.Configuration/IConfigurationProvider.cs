@@ -42,7 +42,7 @@ namespace Westwind.Utilities.Configuration
     /// 
     /// Used in conjunction with the <seealso cref="AppConfiguration"/> class. 
     /// A base implementation from which to inherit is provided in the
-    /// <seealso cref="ConfigurationProviderBase"/>  class.
+    /// <seealso cref="Westwind.Utilities.Configuration.ConfigurationProviderBase"/>  class.
     /// </summary>
     public interface IConfigurationProvider        
     {
@@ -61,6 +61,11 @@ namespace Westwind.Utilities.Configuration
         /// The encryption key used to encrypt fields in config objects
         /// </summary>
         string EncryptionKey { get; set; }
+
+        /// <summary>
+        /// Optional Section name that can be used to sub-segment in multi-config files
+        /// </summary>
+        string ConfigurationSection { get; set; }
 
         /// <summary>
         /// Reads configuration information into new configuration object instance

@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Westwind.Utilities.Configur
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Westwind.ApplicationConfiguration.WebSample", "Westwind.ApplicationConfiguration.WebSample\Westwind.ApplicationConfiguration.WebSample.csproj", "{2CEBB8E2-46F5-4716-A866-48B2A2E33206}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Westwind.Utilities.Configuration.Tests", "Westwind.Utilities.Configuration.Tests\Westwind.Utilities.Configuration.Tests.csproj", "{7462B3A1-4894-4F1A-8B16-7B8D058EAC13}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{2CEBB8E2-46F5-4716-A866-48B2A2E33206}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2CEBB8E2-46F5-4716-A866-48B2A2E33206}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2CEBB8E2-46F5-4716-A866-48B2A2E33206}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7462B3A1-4894-4F1A-8B16-7B8D058EAC13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7462B3A1-4894-4F1A-8B16-7B8D058EAC13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7462B3A1-4894-4F1A-8B16-7B8D058EAC13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7462B3A1-4894-4F1A-8B16-7B8D058EAC13}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

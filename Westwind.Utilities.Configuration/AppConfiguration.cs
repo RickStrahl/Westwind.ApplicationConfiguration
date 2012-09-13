@@ -259,8 +259,9 @@ namespace Westwind.Utilities.Configuration
                 provider = Activator.CreateInstance(typeProvider) as IConfigurationProvider;
 
                 // if no section name is passed it goes into standard appSettings
-                if (sectionName != null)                       
-                    ((dynamic)provider).ConfigurationSection = sectionName;                              
+                if (sectionName != null)                
+                    provider.ConfigurationSection = sectionName;
+                
             }
             Provider = provider;
             Provider.Read(this);
@@ -344,6 +345,8 @@ namespace Westwind.Utilities.Configuration
         /// <returns></returns>
         public virtual bool Read()
         {
+            this.Initialize();
+
             if (!Provider.Read(this))
             {
                 ErrorMessage = Provider.ErrorMessage;
@@ -451,3 +454,6 @@ namespace Westwind.Utilities.Configuration
         public string ApplicationTitle { get; set; }
     }
 }
+
+
+              

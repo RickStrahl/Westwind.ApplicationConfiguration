@@ -38,6 +38,8 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PublishDatabases>false</PublishDatabases>
+    <DeployEncryptKey>Encryption password is used only if any deployment setting is marked as secure</DeployEncryptKey>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -95,6 +97,7 @@
     <Content Include="Css\bootstrap.css" />
     <Content Include="Css\bootstrap.min.css" />
     <Content Include="img\ApplicationConfigurationLogo.png" />
+    <Content Include="img\ApplicationConfigurationLogo_65.png" />
     <Content Include="img\github.png" />
     <Content Include="img\wwtoollogo_text.png" />
     <Content Include="Global.asax" />
@@ -143,6 +146,9 @@
       <Project>{1d865318-2863-4424-b650-58f220439d64}</Project>
       <Name>Westwind.Utilities.Configuration</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Properties\PublishProfiles\West Wind MsDeploy.pubxml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

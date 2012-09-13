@@ -81,6 +81,13 @@ namespace Westwind.Utilities.Configuration
             set { _EncryptionKey = value; }
         }
         private string _EncryptionKey = "x@3|zg?4%ui*";
+
+        /// <summary>
+        /// Optional Section name that can differentiate groups of config
+        /// values in multi-section files like Config files.
+        /// </summary>
+        public string ConfigurationSection {get; set; }
+
         
         /// <summary>
         /// Reads a configurations settings from the configuration store

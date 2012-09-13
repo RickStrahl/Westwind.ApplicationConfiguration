@@ -29,7 +29,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RegisterForComInterop>false</RegisterForComInterop>
-    <DocumentationFile>bin\Release\Westwind.Utilities.Configuration.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\Westwind.Utilities.Configuration.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfiguration.cs" />
+    <Compile Include="ConfigFileConfiguration.cs" />
     <Compile Include="ConfigurationFileConfigurationProvider.cs" />
     <Compile Include="ConfigurationProviderBase.cs" />
     <Compile Include="IConfigurationProvider.cs" />

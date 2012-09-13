@@ -42,12 +42,12 @@ To use you simply create a class and implement this minimal code:
 
 	public class ApplicationConfiguration : Westwind.Utilities.Configuration.AppConfiguration
 	{
-	    public ApplicationConfiguration() 
+	    public ApplicationConfiguration() : base(null,"MyConfiguration")
 	    { }
 
 		// default implementation - web.config or app.config and specify a section to write to	    
 	    public ApplicationConfigurationIConfigurationProvider provider) 
-	    		: base(null,"ApplicationConfiguration")
+	    		: base(null,"MyConfiguration")
 	    { }
 	
 	    // put property initialization into this separate method
@@ -136,14 +136,6 @@ the default constructor shown above you can use the following:
 	         this.Initialize()
 	    }
 
-	    // centralized initialization so both constructors can use it
-	    public override void Initialize()
-	    {
-	        // set any default values here
-	        ApplicationTitle = "West Wind Web Toolkit Sample";
-	        DebugMode = DebugModes.ApplicationErrorMessage;
-	        MaxPageItems = 20;
-	    }
 
 	    /// <summary>
 	    /// By convention a second constructor that takes a Config Provider
@@ -167,7 +159,8 @@ the default constructor shown above you can use the following:
 	            {
 	                PropertiesToEncrypt = "MailServerPassword,ConnectionString",
 	                EncryptionKey = "secret",
-	                ConfigurationSection = "ApplicationConfiguration",
+	                ConfigurationSection = "MyConfiguration"
+                        // ConfigurationFile = "MyConfigFile.config"
 	            };
 	        }
 	        else
@@ -182,6 +175,15 @@ the default constructor shown above you can use the following:
 	    public string ConnectionString {get; set; }
 	    public DebugModes DebugMode {get; set; }
 	    public int MaxPageItems {get; set; }
+
+	    // centralized initialization so both constructors can use it
+	    public override void Initialize()
+	    {
+	        // set any default values here
+	        ApplicationTitle = "West Wind Web Toolkit Sample";
+	        DebugMode = DebugModes.ApplicationErrorMessage;
+	        MaxPageItems = 20;
+	    }
 	}
 
 Here an ConfigurationFileProvider is explictly created when the provider is passed as null.
