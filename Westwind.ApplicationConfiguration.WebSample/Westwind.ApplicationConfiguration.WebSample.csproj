@@ -96,6 +96,8 @@
     <Content Include="Css\bootstrap-responsive.min.css" />
     <Content Include="Css\bootstrap.css" />
     <Content Include="Css\bootstrap.min.css" />
+    <Content Include="Css\font-awesome.css" />
+    <Content Include="Css\fontawesome-webfont.svg" />
     <Content Include="img\ApplicationConfigurationLogo.png" />
     <Content Include="img\ApplicationConfigurationLogo_65.png" />
     <Content Include="img\github.png" />
@@ -139,15 +141,15 @@
     <Content Include="Views\Samples\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Css\style1.less" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Westwind.Utilities.Configuration\Westwind.Utilities.Configuration.csproj">
       <Project>{1d865318-2863-4424-b650-58f220439d64}</Project>
       <Name>Westwind.Utilities.Configuration</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Css\fontawesome-webfont.eot" />
+    <Content Include="Css\fontawesome-webfont.ttf" />
+    <Content Include="Css\fontawesome-webfont.woff" />
     <None Include="Properties\PublishProfiles\West Wind MsDeploy.pubxml" />
   </ItemGroup>
   <PropertyGroup>
