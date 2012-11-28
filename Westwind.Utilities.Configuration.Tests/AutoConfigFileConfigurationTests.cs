@@ -37,9 +37,26 @@ namespace Westwind.Utilities.Configuration.Tests
 
             Assert.IsNotNull(config);
             Assert.IsFalse(string.IsNullOrEmpty(config.ApplicationName));            
+            Assert.AreEqual(config.MaxDisplayListItems,12);
 
             string text = File.ReadAllText(TestHelpers.GetTestConfigFilePath());
             Console.WriteLine(text);          
+        }
+        [TestMethod]
+        public void AutoConfigWriteConfigurationTest()
+        {
+
+            var config = new AutoConfigFileConfiguration(null);
+
+            Assert.IsNotNull(config);
+            Assert.IsFalse(string.IsNullOrEmpty(config.ApplicationName));
+            Assert.AreEqual(config.MaxDisplayListItems, 12);
+
+            config.MaxDisplayListItems = 15;
+            config.Write();
+
+            // re-initialize
+            config = new AutoConfigFileConfiguration(null);
         }
 
         [TestMethod]
@@ -52,6 +69,43 @@ namespace Westwind.Utilities.Configuration.Tests
             config.SendAdminEmailConfirmations = true;
             config.Write();
             
+            string text = File.ReadAllText(TestHelpers.GetTestConfigFilePath());
+            Console.WriteLine(text);
+
+            Assert.IsTrue(text.Contains(@"<add key=""DebugMode"" value=""DeveloperErrorMessage"" />"));
+            Assert.IsTrue(text.Contains(@"<add key=""MaxDisplayListItems"" value=""12"" />"));
+            Assert.IsTrue(text.Contains(@"<add key=""SendAdminEmailConfirmations"" value=""True"" />"));
+        }
+
+
+        /// <summary>
+        /// Test without explicit constructor parameter 
+        /// </summary>
+        [TestMethod]
+        public void DefaultConstructor2InstanceTest()
+        {
+            var config = new AutoConfigFile2Configuration();
+
+            Assert.IsNotNull(config);
+            Assert.IsFalse(string.IsNullOrEmpty(config.ApplicationName));
+
+            string text = File.ReadAllText(TestHelpers.GetTestConfigFilePath());
+            Console.WriteLine(text);
+        }
+
+        /// <summary>
+        /// Write test without explicit constructor
+        /// </summary>
+        [TestMethod]
+        public void WriteConfiguration2Test()
+        {
+            var config = new AutoConfigFile2Configuration();
+            config.MaxDisplayListItems = 12;
+            config.DebugMode = DebugModes.DeveloperErrorMessage;
+            config.ApplicationName = "Changed";
+            config.SendAdminEmailConfirmations = true;
+            config.Write();
+
             string text = File.ReadAllText(TestHelpers.GetTestConfigFilePath());
             Console.WriteLine(text);
 

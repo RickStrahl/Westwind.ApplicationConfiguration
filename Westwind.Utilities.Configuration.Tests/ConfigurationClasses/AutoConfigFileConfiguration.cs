@@ -42,4 +42,26 @@ namespace Westwind.Utilities.Configuration.Tests
         }
     }
 
+
+    class AutoConfigFile2Configuration : Westwind.Utilities.Configuration.AppConfiguration
+    {
+
+        public AutoConfigFile2Configuration()
+            : base(null,"AutoConfigFile2Configuration")
+        { }
+
+        public string ApplicationName { get; set; }
+        public DebugModes DebugMode { get; set; }
+        public int MaxDisplayListItems { get; set; }
+        public bool SendAdminEmailConfirmations { get; set; }
+
+        protected override void Initialize()
+        {
+            ApplicationName = "Configuration Tests";
+            DebugMode = DebugModes.ApplicationErrorMessage;
+            MaxDisplayListItems = 19;
+            SendAdminEmailConfirmations = false;
+        }
+    }
+
 }
