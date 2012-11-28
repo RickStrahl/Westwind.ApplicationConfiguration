@@ -1,7 +1,30 @@
 #West Wind Application Configuration
+###Strongly typed configuration classes for .NET Applications###
 
-This library allows you to create strongly typed configuration classes
-that map configuration data stored in a variety of configuration stores:
+.NET library that provides for code-first creation of configuration settings
+using strongly typed .NET classes. Configuration data can be mapped to various
+configuration stores and can auto-sync from store to class and vice versa.
+You can use standard .NET config files, sections and external files, or 
+other custom stores including plain XML files, strings or a database.
+Additional custom stores can also be created easily.
+
+Unlike the built-in .NET Configuration Manager classes, the classes you
+create are strongly typed and automatically convert config store values
+to strong types. You can also write configuration data from the class to
+the configuration store and if a store or store value doesn't exist it's
+automatically created (provided permissions allow it)
+
+This library provides:
+
+* Automatic type conversion from configuration store to class properties
+* Default values for configuration values (never worry about null values)
+* Optional encryption of individual keys
+* Automatic creation of configuration store if it doesn't exist
+* Automatic addition of values that don't exist in configuration store
+* Support for multiple configuration objects simultaneously
+* Works in any kind of .NET application: Web, Desktop, Console, Service...
+
+Default Configuration Storage format:
 
 * Standard .NET .config files
 * Specific Configuration Sections
@@ -9,13 +32,7 @@ that map configuration data stored in a variety of configuration stores:
 * Plain XML files
 * Strings
 * Sql Server Tables
-
-In addition this library provides
-* Encryption of individual keys
-* Default values for configuration values
-* Automatic creation of default values in configuration store
-* Support for multiple configuration objects
-* Works in any kind of .NET application: Web, Desktop, Console, Service...
+* Option to create custom ConfigurationProviders
 
 More detailed documentation is available as part of the Westwind.WebToolkit
 here:
