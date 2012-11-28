@@ -220,7 +220,9 @@ namespace Westwind.Utilities.Configuration
         /// or null (default provider).
         /// </summary>         
         public AppConfiguration()
-        { }
+        {
+            Initialize();
+        }
 
         /// <summary>
         /// This version of the constructor accepts a premade 
@@ -274,6 +276,7 @@ namespace Westwind.Utilities.Configuration
         /// <param name="noConfiguration"></param>
         public AppConfiguration(bool noConfiguration)
         {
+            Initialize();
         }
 
         /// <summary>

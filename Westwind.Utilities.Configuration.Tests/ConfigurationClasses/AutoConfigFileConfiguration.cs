@@ -43,7 +43,7 @@ namespace Westwind.Utilities.Configuration.Tests
     }
 
 
-    class AutoConfigFile2Configuration : Westwind.Utilities.Configuration.AppConfiguration
+    class AutoConfigFile2Configuration : AppConfiguration
     {
 
         public AutoConfigFile2Configuration()
@@ -59,7 +59,7 @@ namespace Westwind.Utilities.Configuration.Tests
         {
             ApplicationName = "Configuration Tests";
             DebugMode = DebugModes.ApplicationErrorMessage;
-            MaxDisplayListItems = 19;
+            MaxDisplayListItems = 15;
             SendAdminEmailConfirmations = false;
         }
     }

@@ -11,5 +11,12 @@ namespace Westwind.Utilities.Configuration.Tests
             return (typeof(TestHelpers).Assembly.CodeBase + ".config")
                    .Replace("file:///", "");
         }
+
+        public static void xDeleteTestConfigFile()
+        {
+            string configFile = GetTestConfigFilePath();
+            File.Delete(configFile);                   
+        }
+
     }
 }

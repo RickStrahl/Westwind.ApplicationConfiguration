@@ -1,6 +1,5 @@
 #West Wind Application Configuration
 ###Strongly typed configuration classes for .NET Applications###
-
 .NET library that provides for code-first creation of configuration settings
 using strongly typed .NET classes. Configuration data can be mapped to various
 configuration stores and can auto-sync from store to class and vice versa.
@@ -8,11 +7,11 @@ You can use standard .NET config files, sections and external files, or
 other custom stores including plain XML files, strings or a database.
 Additional custom stores can also be created easily.
 
-Unlike the built-in .NET Configuration Manager classes, the classes you
+Unlike the built-in .NET Configuration Manager, the classes you
 create are strongly typed and automatically convert config store values
 to strong types. You can also write configuration data from the class to
 the configuration store and if a store or store value doesn't exist it's
-automatically created (provided permissions allow it)
+automatically created (provided permissions allow it).
 
 This library provides:
 
