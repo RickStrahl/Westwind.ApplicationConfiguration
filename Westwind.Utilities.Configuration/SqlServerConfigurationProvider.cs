@@ -36,7 +36,6 @@ using System.Data.SqlClient;
 using Westwind.Utilities.Data;
 using System.Data.Common;
 using System;
-using System.Configuration;
 //using System.Data.SqlServerCe;
 namespace Westwind.Utilities.Configuration
 {
@@ -114,8 +113,6 @@ namespace Westwind.Utilities.Configuration
         /// <returns></returns>
         public override T Read<T>()
         {
-            ConfigurationManager.RefreshSection("connectionStrings");
-
             SqlDataAccess data = new SqlDataAccess(ConnectionString,ProviderName);            
 
             string sql = "select * from [" + Tablename + "] where id=" + Key.ToString();
@@ -278,6 +275,9 @@ namespace Westwind.Utilities.Configuration
                 }
 
             }
+
+            if (Result < 0)
+                return false;
             
             return true;
         }

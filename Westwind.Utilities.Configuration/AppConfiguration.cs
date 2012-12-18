@@ -188,7 +188,7 @@ namespace Westwind.Utilities.Configuration
     ///    throw new ApplicationException(&quot;Boo&quot;);
     /// &lt;&lt;/code&gt;&gt;
     /// </example>
-    public abstract class AppConfiguration          
+    public abstract class AppConfiguration
     {
 
         /// <summary>
@@ -201,6 +201,7 @@ namespace Westwind.Utilities.Configuration
         [NonSerialized]
         public IConfigurationProvider Provider = null;
 
+
         /// <summary>
         /// Contains an error message if a method returns false or the object fails to 
         /// load the configuration data.
@@ -210,6 +211,11 @@ namespace Westwind.Utilities.Configuration
         [NonSerialized]
         public string ErrorMessage = string.Empty;
 
+        /// <summary>
+        /// Internal flag that checks to see if Initialize was called
+        /// if not - automatically calls it without parameters
+        /// </summary>
+        protected bool InitializeCalled = false;
         
         /// <summary>
         /// Default constructor of this class SHOULD ALWAYS be implemented in
@@ -220,40 +226,61 @@ namespace Westwind.Utilities.Configuration
         /// or null (default provider).
         /// </summary>         
         public AppConfiguration()
+        { }
+
+        /// <summary>
+        /// This method initializes the ApplicationConfiguration
+        /// with a provider.        
+        /// </summary>
+        /// <param name="provider">
+        /// Optional - preconfigured ConfigurationProvider instance.
+        /// If not passed ConfigurationFileConfigurationProvider is used.
+        /// </param>
+        /// <param name="sectionName">
+        /// Optional - section name used
+        /// </param>
+        /// <param name="configData">
+        /// Optional - additional config data to pass to OnInitialize if implemented
+        /// </param>
+        public void Initialize(IConfigurationProvider provider = null, 
+                               string sectionName = null, 
+                               object configData = null)
         {
-            Initialize();
+                // Initialization occurs only once
+            if (InitializeCalled)
+               return;
+            InitializeCalled = true;           
+
+            if (provider == null)
+                provider = Provider;
+
+            if (string.IsNullOrEmpty(sectionName))
+                sectionName = this.GetType().Name;
+
+            OnInitialize(provider,sectionName,configData);
         }
 
         /// <summary>
-        /// This version of the constructor accepts a premade 
-        /// instance of a provider - this is the recommended
-        /// constructor to use so that the default constructor 
-        /// creates a clean instance.
-        /// 
-        /// Typically you'll subclass this constructor. The
-        /// default implementation provides for a section in
-        /// the applicaiton's .config file.
-        /// 
-        /// Recommend you implement default your constructor 
-        /// to automatically load up:
-        /// 
-        /// public MyConfiguration() : base(null,"MyAppConfig") 
-        /// {}
-        /// 
-        /// Pass null and create a default provider implementation
-        /// here - typically ConfigFileConfigurationProvider.
+        /// Handles the actual provider initialization process.
+        /// Subclass this method to create custom provider startups
+        /// and configuration.
         /// </summary>
-        /// <param name="provider"></param>
-        /// <param name="sectionName">Optional - section name used </param>
-        public AppConfiguration(IConfigurationProvider provider, string sectionName = null)
+        /// <param name="provider">Provider value - can be null</param>
+        /// <param name="sectionName">Sub Section name - can be null</param>
+        /// <param name="configData">
+        /// Any additional configuration data that can be used to
+        /// configure the provider.
+        /// </param>
+        protected virtual void OnInitialize(IConfigurationProvider provider, 
+                                           string sectionName,
+                                           object configData)
         {
-            // do default initializing like set up default values
-            Initialize();
+            
 
             // if no provider was passed create a default
             // config section provider - AppSettings if no section is passed
             if (provider == null)
-            {                
+            {
                 // dynamically construct the generic provider type
                 var providerType = typeof(ConfigurationFileConfigurationProvider<>);
                 var type = this.GetType();
@@ -261,31 +288,12 @@ namespace Westwind.Utilities.Configuration
                 provider = Activator.CreateInstance(typeProvider) as IConfigurationProvider;
 
                 // if no section name is passed it goes into standard appSettings
-                if (sectionName != null)                
+                if (!string.IsNullOrEmpty(sectionName))
                     provider.ConfigurationSection = sectionName;
-                
             }
             Provider = provider;
             Provider.Read(this);
         }
-
-        /// <summary>
-        /// This version of the constructor doesn't do any default
-        /// configuration.
-        /// </summary>
-        /// <param name="noConfiguration"></param>
-        public AppConfiguration(bool noConfiguration)
-        {
-            Initialize();
-        }
-
-        /// <summary>
-        /// Overridable method that can be used to initialize the base 
-        /// object state. Use to set default values for properties and
-        /// then if necessary call from the appropriate constructors.
-        /// </summary>
-        protected virtual void Initialize()
-        { }
 
         /// <summary>
         /// Writes the current configuration information data to the
@@ -294,6 +302,8 @@ namespace Westwind.Utilities.Configuration
         /// <returns></returns>
         public virtual bool Write()
         {
+            Initialize();
+
             if (!Provider.Write(this))
             {
                 ErrorMessage = Provider.ErrorMessage;
@@ -310,6 +320,8 @@ namespace Westwind.Utilities.Configuration
         /// <returns></returns>
         public virtual string WriteAsString()
         {
+            Initialize();
+
             string xml = string.Empty;
             Provider.EncryptFields(this);
 
@@ -331,6 +343,8 @@ namespace Westwind.Utilities.Configuration
         public virtual T Read<T>()
                 where T : AppConfiguration, new()
         {
+            Initialize();
+
             var inst = Provider.Read<T>();
             if (inst == null)
             {
@@ -348,7 +362,7 @@ namespace Westwind.Utilities.Configuration
         /// <returns></returns>
         public virtual bool Read()
         {
-            this.Initialize();
+            Initialize();
 
             if (!Provider.Read(this))
             {
@@ -369,6 +383,8 @@ namespace Westwind.Utilities.Configuration
         /// <returns>true or false</returns>
         public virtual bool Read(string xml)
         {
+            Initialize();
+
             var newInstance = SerializationUtils.DeSerializeObject(xml, GetType());
 
             DataUtils.CopyObjectData(newInstance, this, "Provider,Errormessage");
@@ -438,14 +454,6 @@ namespace Westwind.Utilities.Configuration
     class MyAppConfiguration : AppConfiguration
     {
         public MyAppConfiguration()
-        {
-        }
-
-        public MyAppConfiguration(IConfigurationProvider provider) : base(null,"MyAppConfiguration")
-        { 
-        }
-
-        protected override void Initialize()
         {
             MyProperty = "My default property value";
             MaxPageListItems = 15;
