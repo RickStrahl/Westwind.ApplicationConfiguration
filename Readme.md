@@ -251,5 +251,5 @@ Here's the complete class layout:
 Many more configuration options are available. Please check the full documentation
 for more information.
 
-* [Westwind.ApplicationConfiguration Documentation](http://west-wind.com/westwindwebtoolkit/docs?page=_2le027umn.htm)
-* [Westwind.ApplicationConfiguration Class Reference](http://west-wind.com/westwindwebtoolkit/docs?page=_3ff0psdpu.htm)
+* [Westwind.ApplicationConfiguration Documentation](http://west-wind.com/Westwind.ApplicationConfiguration/docs/?page=_2le027umn.htm)
+* [Westwind.ApplicationConfiguration Class Reference](http://west-wind.com/Westwind.ApplicationConfiguration/docs/?page=_3ff0psdpu.htm)
