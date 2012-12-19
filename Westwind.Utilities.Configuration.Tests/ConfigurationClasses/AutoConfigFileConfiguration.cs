@@ -20,48 +20,49 @@ namespace Westwind.Utilities.Configuration.Tests
     /// </summary>
     class AutoConfigFileConfiguration : Westwind.Utilities.Configuration.AppConfiguration
     {
-
-        public AutoConfigFileConfiguration()
-        { }
-
-        public AutoConfigFileConfiguration(IConfigurationProvider provider,string section = "AutoConfigFileConfiguration")
-            :base(provider, section)
-        { }
-
         public string ApplicationName { get; set; }
         public DebugModes DebugMode { get; set; }
         public int MaxDisplayListItems { get; set; }
         public bool SendAdminEmailConfirmations { get; set; }
+        public string MailServer { get; set; }
+        public string MailServerPassword { get; set; }
 
-        protected override void Initialize()
+        public AutoConfigFileConfiguration()
         {
             ApplicationName = "Configuration Tests";
             DebugMode = DebugModes.Default;
             MaxDisplayListItems = 15;
             SendAdminEmailConfirmations = false;
+            MailServer = "mail.MyWickedServer.com:334";
+            MailServerPassword = "seekrity";
         }
+
+
     }
 
-
+    /// <summary>
+    /// This version of the class internally calls Initialize
+    /// to read configuration information immediately from
+    /// itself so no explicit call to Initialize is required
+    /// </summary>
     class AutoConfigFile2Configuration : AppConfiguration
     {
-
-        public AutoConfigFile2Configuration()
-            : base(null,"AutoConfigFile2Configuration")
-        { }
-
         public string ApplicationName { get; set; }
         public DebugModes DebugMode { get; set; }
         public int MaxDisplayListItems { get; set; }
         public bool SendAdminEmailConfirmations { get; set; }
 
-        protected override void Initialize()
+        public AutoConfigFile2Configuration()
         {
             ApplicationName = "Configuration Tests";
-            DebugMode = DebugModes.ApplicationErrorMessage;
+            DebugMode = DebugModes.Default;
             MaxDisplayListItems = 15;
             SendAdminEmailConfirmations = false;
+
+            // Automatically initialize this one
+            this.Initialize();
         }
+
     }
 
 }

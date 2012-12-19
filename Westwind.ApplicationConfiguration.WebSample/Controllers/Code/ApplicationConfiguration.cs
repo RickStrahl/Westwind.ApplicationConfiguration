@@ -11,12 +11,6 @@ namespace ApplicationConfigurationWeb
     /// </summary>    
     public class ApplicationConfiguration : AppConfiguration
     {
-        /// <summary>
-        /// Always implement a default constructor so new instances
-        /// can be created by the various de-serialization config schemes.
-        /// </summary>
-        public ApplicationConfiguration()
-        { }
 
         // This is the easy way to implement default .config file behavior
         // public ApplicationConfiguration(IConfigurationProvider provider) : base(provider,"AppConfiguration") 
@@ -79,7 +73,7 @@ namespace ApplicationConfigurationWeb
 
         // Define properties and defaults
 
-        protected override void Initialize()
+        public ApplicationConfiguration()
         {
             ApplicationTitle = "Configuration Sample";
             ApplicationSubTitle = "Making ASP.NET Easier to use";

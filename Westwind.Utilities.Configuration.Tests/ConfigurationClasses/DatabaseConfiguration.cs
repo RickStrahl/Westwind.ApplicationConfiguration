@@ -12,51 +12,15 @@ namespace Westwind.Utilities.Configuration.Tests
     /// </summary>
     public class DatabaseConfiguration : Westwind.Utilities.Configuration.AppConfiguration
     {
-
-        // Must implement public default constructor
-        public DatabaseConfiguration()
-        {
-            // Default values assigned
-            Initialize();
-        }
-
-        // Always call this constructor new CustomConfigFileConfiguration(null)
-        public DatabaseConfiguration(string connectionString, string tableName = null)
-        {
-            // Default values assigned
-            Initialize();
-
-            if (string.IsNullOrEmpty(connectionString))
-                connectionString = "LocalDatabaseConnectionString";
-
-
-
-            if (string.IsNullOrEmpty(tableName))
-                tableName = "ConfigSettings"; 
-
-            var provider = new SqlServerConfigurationProvider<DatabaseConfiguration>()
-            {
-                ConnectionString = connectionString,
-                Tablename = tableName,   
-                ProviderName= "System.Data.SqlServerCe.4.0",
-                EncryptionKey = "ultra-seekrit",  // use a generated value here
-                PropertiesToEncrypt = "Password,AppConnectionString"
-                // UseBinarySerialization = true                     
-            };                
-                       
-            // assign the provider
-            Provider = provider;
-            Read();        
-        }
-
         public string ApplicationName { get; set; }
         public DebugModes DebugMode { get; set; }
         public int MaxDisplayListItems { get; set; }
         public bool SendAdminEmailConfirmations { get; set; }
         public string Password { get; set; }
         public string AppConnectionString { get; set; }
-
-        protected override void Initialize()
+        
+        // Must implement public default constructor
+        public DatabaseConfiguration()
         {
             ApplicationName = "Configuration Tests";
             DebugMode = DebugModes.Default;
@@ -65,6 +29,46 @@ namespace Westwind.Utilities.Configuration.Tests
             Password = "seekrit";
             AppConnectionString = "server=.;database=hosers;uid=bozo;pwd=seekrit;";
         }
+
+
+        /// <summary>
+        /// Optional - Create a custom overload with required parameters
+        /// </summary>
+        public void Initialize(string connectionString, string tableName = null)
+        {
+            base.Initialize(configData: new { ConnectionString = connectionString, Tablename = tableName });
+        }
+        
+        /// <summary>
+        /// Override this method to create the custom default provider - in this case a database
+        /// provider with a few options.
+        /// </summary>
+        protected override IConfigurationProvider OnCreateDefaultProvider(string sectionName, object configData)
+        {
+            // default connect values
+            string connectionString =  "LocalDatabaseConnection";
+            string tableName = "ConfigurationData";
+
+            // ConfigData: new { ConnectionString = "...", Tablename = "..." }
+            if (configData != null)
+            {
+                dynamic data = configData;
+                connectionString = data.ConnectionString;
+                tableName = data.Tablename;                       
+            }
+
+            var provider = new SqlServerConfigurationProvider<DatabaseConfiguration>()
+            {
+                ConnectionString = connectionString,
+                Tablename = tableName,
+                ProviderName = "System.Data.SqlServerCe.4.0",
+                EncryptionKey = "ultra-seekrit",  // use a generated value here
+                PropertiesToEncrypt = "Password,AppConnectionString"
+                // UseBinarySerialization = true                     
+            };
+
+            return provider;
+        }    
     }
 
 }

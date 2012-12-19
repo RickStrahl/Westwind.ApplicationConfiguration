@@ -164,6 +164,12 @@
             <seealso>Class AppConfiguration</seealso>
             </summary>
         </member>
+        <member name="F:Westwind.Utilities.Configuration.AppConfiguration.InitializeCalled">
+            <summary>
+            Internal flag that checks to see if Initialize was called
+            if not - automatically calls it without parameters
+            </summary>
+        </member>
         <member name="M:Westwind.Utilities.Configuration.AppConfiguration.#ctor">
             <summary>
             Default constructor of this class SHOULD ALWAYS be implemented in
@@ -174,42 +180,50 @@
             or null (default provider).
             </summary>         
         </member>
-        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.#ctor(Westwind.Utilities.Configuration.IConfigurationProvider,System.String)">
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.Initialize(Westwind.Utilities.Configuration.IConfigurationProvider,System.String,System.Object)">
             <summary>
-            This version of the constructor accepts a premade 
-            instance of a provider - this is the recommended
-            constructor to use so that the default constructor 
-            creates a clean instance.
-            
-            Typically you'll subclass this constructor. The
-            default implementation provides for a section in
-            the applicaiton's .config file.
-            
-            Recommend you implement default your constructor 
-            to automatically load up:
-            
-            public MyConfiguration() : base(null,"MyAppConfig") 
-            {}
-            
-            Pass null and create a default provider implementation
-            here - typically ConfigFileConfigurationProvider.
+            This method initializes the configuration object with a provider
+            and performs an initial read from the config store.    
             </summary>
-            <param name="provider"></param>
-            <param name="sectionName">Optional - section name used </param>
+            <param name="provider">
+            Optional - preconfigured ConfigurationProvider instance.
+            If not passed ConfigurationFileConfigurationProvider is used.
+            </param>
+            <param name="sectionName">
+            Optional - sub-section name used for config files. Not used by all config stores
+            </param>
+            <param name="configData">
+            Optional - additional config data to pass to OnInitialize if implemented
+            </param>
         </member>
-        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.#ctor(System.Boolean)">
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.OnInitialize(Westwind.Utilities.Configuration.IConfigurationProvider,System.String,System.Object)">
             <summary>
-            This version of the constructor doesn't do any default
-            configuration.
+            Override this method to handle custom initialization tasks.
+            
+            This method should: create a provider and call it's Read()
+            method to populate the current instance of the configuration
+            object.
+            
+            If all you need is to create a default provider configuration
+            use the OnCreateDefaultProvider() method to override instead.
+            Use this method if you need to perform custom actions beyond
+            standard instantiation.
             </summary>
-            <param name="noConfiguration"></param>
+            <param name="provider">Provider value - can be null</param>
+            <param name="sectionName">Sub Section name - can be null</param>
+            <param name="configData">
+            Any additional configuration data that can be used to
+            configure the provider.
+            </param>
         </member>
-        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.Initialize">
+        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.OnCreateDefaultProvider(System.String,System.Object)">
             <summary>
-            Overridable method that can be used to initialize the base 
-            object state. Use to set default values for properties and
-            then if necessary call from the appropriate constructors.
+            Override this method to use a specialized configuration provider for your config class
+            when no explicit provider is passed to the Initialize() method.
             </summary>
+            <param name="sectionName">Optional section name that was passed to Initialize()</param>
+            <param name="configData">Optional config data that was passed to Initialize()</param>
+            <returns>Instance of configuration provider</returns>
         </member>
         <member name="M:Westwind.Utilities.Configuration.AppConfiguration.Write">
             <summary>
@@ -567,12 +581,6 @@
             and its default store.
             </summary>
         </member>
-        <member name="P:Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider`1.ConfigurationSection">
-            <summary>
-            Optional The Configuration section where settings are stored.
-            If not specified the appSettings section is used.
-            </summary>
-        </member>
         <member name="T:Westwind.Utilities.Configuration.Properties.Resources">
             <summary>
               A strongly-typed resource class, for looking up localized strings, etc.
@@ -617,6 +625,11 @@
         <member name="P:Westwind.Utilities.Configuration.Properties.Resources.InvalidTypeForXmlTypeToNETTypeConversion">
             <summary>
               Looks up a localized string similar to Invalid type for XmlType to .NET Type conversion..
+            </summary>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.ObjectCouldNotBeDeserializedFromXml">
+            <summary>
+              Looks up a localized string similar to Object could not be deserialized from Xml..
             </summary>
         </member>
         <member name="P:Westwind.Utilities.Configuration.Properties.Resources.StringToTypedValueValueTypeConversionFailed">
@@ -698,8 +711,30 @@
             through your code as long as it supports strings.   
             
             The string provider is a real minimal implementation that only implements
-            WriteAsString(config) and Read(string).
+            WriteAsString(config) and Read(string). It inherits all of its functionality
+            from the base provider.
             </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.StringConfigurationProvider`1.Read``1">
+            <summary>
+            Reads from the InitialStringData string data
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.StringConfigurationProvider`1.Read(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Reads configuration information into config from InitialStringData
+            </summary>
+            <param name="config"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.StringConfigurationProvider`1.Write(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Not supported for StringConfiguration
+            </summary>
+            <param name="config"></param>
+            <returns></returns>
         </member>
         <member name="T:Westwind.Utilities.DataUtils">
             <summary>

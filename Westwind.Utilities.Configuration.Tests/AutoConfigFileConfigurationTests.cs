@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using System.Configuration;
 
 namespace Westwind.Utilities.Configuration.Tests
 {
@@ -32,22 +33,50 @@ namespace Westwind.Utilities.Configuration.Tests
 
         [TestMethod]
         public void DefaultConstructorInstanceTest()
-        {
-            var config = new AutoConfigFileConfiguration(null);
+        {         
+            var config = new AutoConfigFileConfiguration();
+            
+            // gets .config file, AutoConfigFileConfiguration section
+            config.Initialize();
 
             Assert.IsNotNull(config);
-            Assert.IsFalse(string.IsNullOrEmpty(config.ApplicationName));            
-            Assert.AreEqual(config.MaxDisplayListItems,15);
+            Assert.IsFalse(string.IsNullOrEmpty(config.ApplicationName));
+            Assert.AreEqual(config.MaxDisplayListItems, 15);
 
             string text = File.ReadAllText(TestHelpers.GetTestConfigFilePath());
-            Console.WriteLine(text);          
+            Console.WriteLine(text);
         }
+
+        [TestMethod]
+        public void DefaultConstructorWithCustomProviderTest()
+        {
+            var config = new AutoConfigFileConfiguration();
+
+            // Create a customized provider to set provider options
+            var provider = new ConfigurationFileConfigurationProvider<AutoConfigFileConfiguration>()
+            {
+                ConfigurationSection = "CustomConfiguration",
+                EncryptionKey = "seekrit123",
+                PropertiesToEncrypt = "MailServer,MailServerPassword"                
+            };
+
+            config.Initialize(provider);  
+            
+            // Config File and custom section should exist
+            string text = File.ReadAllText(TestHelpers.GetTestConfigFilePath());
+
+            Assert.IsFalse(string.IsNullOrEmpty(text));
+            Assert.IsTrue(text.Contains("<CustomConfiguration>"));
+
+            // MailServer/MailServerPassword value should be encrypted
+            Console.WriteLine(text);
+        }
+
         [TestMethod]
         public void AutoConfigWriteConfigurationTest()
-        {
-            
-
-            var config = new AutoConfigFileConfiguration(null);
+        {            
+            var config = new AutoConfigFileConfiguration();
+            config.Initialize();
 
             Assert.IsNotNull(config);
             Assert.IsFalse(string.IsNullOrEmpty(config.ApplicationName));
@@ -56,7 +85,9 @@ namespace Westwind.Utilities.Configuration.Tests
             config.MaxDisplayListItems = 17;
             config.Write();
 
-            var config2 = new AutoConfigFileConfiguration(null);
+            var config2 = new AutoConfigFileConfiguration();
+            config2.Initialize();
+
             Assert.AreEqual(config2.MaxDisplayListItems, 17);
 
             // reset to default val
@@ -67,14 +98,16 @@ namespace Westwind.Utilities.Configuration.Tests
         [TestMethod]
         public void WriteConfigurationTest()
         {
-            
-            var config = new AutoConfigFileConfiguration(null);
+
+            var config = new AutoConfigFileConfiguration();
+            config.Initialize();
+
             config.MaxDisplayListItems = 12;
             config.DebugMode = DebugModes.DeveloperErrorMessage;
             config.ApplicationName = "Changed";
             config.SendAdminEmailConfirmations = true;
             config.Write();
-            
+
             string text = File.ReadAllText(TestHelpers.GetTestConfigFilePath());
             Console.WriteLine(text);
 
@@ -82,9 +115,11 @@ namespace Westwind.Utilities.Configuration.Tests
             Assert.IsTrue(text.Contains(@"<add key=""MaxDisplayListItems"" value=""12"" />"));
             Assert.IsTrue(text.Contains(@"<add key=""SendAdminEmailConfirmations"" value=""True"" />"));
 
-            var config2 = new AutoConfigFileConfiguration(null);
-            Assert.AreEqual(config2.MaxDisplayListItems,12);
-            Assert.AreEqual(config2.ApplicationName,"Changed");
+            var config2 = new AutoConfigFileConfiguration();
+            config2.Initialize();
+
+            Assert.AreEqual(config2.MaxDisplayListItems, 12);
+            Assert.AreEqual(config2.ApplicationName, "Changed");
 
             // reset to default val
             config2.MaxDisplayListItems = 15;
@@ -99,6 +134,9 @@ namespace Westwind.Utilities.Configuration.Tests
         public void DefaultConstructor2InstanceTest()
         {
             var config = new AutoConfigFile2Configuration();
+            
+            // Not required since custom constructor calls this
+            //config.Initialize();
 
             Assert.IsNotNull(config);
             Assert.IsFalse(string.IsNullOrEmpty(config.ApplicationName));
@@ -115,6 +153,10 @@ namespace Westwind.Utilities.Configuration.Tests
         public void WriteConfiguration2Test()
         {
             var config = new AutoConfigFile2Configuration();
+            
+            // not necesary since constructor calls internally
+            //config.Initialize();
+
             config.MaxDisplayListItems = 12;
             config.DebugMode = DebugModes.DeveloperErrorMessage;
             config.ApplicationName = "Changed";

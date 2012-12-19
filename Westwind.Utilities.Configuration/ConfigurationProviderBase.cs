@@ -33,6 +33,7 @@
 
 using System;
 using System.Reflection;
+using Westwind.Utilities.Configuration.Properties;
 
 namespace Westwind.Utilities.Configuration
 {
@@ -155,7 +156,12 @@ namespace Westwind.Utilities.Configuration
 
             try
             {
-                newConfig = SerializationUtils.DeSerializeObject(xml, config.GetType(), false, true) as TAppConfiguration;
+                newConfig = SerializationUtils.DeSerializeObject(xml, config.GetType()) as TAppConfiguration;
+                if (newConfig == null)
+                {
+                    SetError(Resources.ObjectCouldNotBeDeserializedFromXml);
+                    return false;
+                }
             }
             catch (Exception ex)
             {

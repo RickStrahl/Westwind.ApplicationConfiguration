@@ -12,34 +12,6 @@ namespace Westwind.Utilities.Configuration.Tests
     /// </summary>
     public class StringConfiguration : Westwind.Utilities.Configuration.AppConfiguration
     {
-
-        // Must implement public default constructor
-        public StringConfiguration()
-        {
-            // Default values assigned
-            Initialize();
-        }
-
-        // Always call this constructor new CustomConfigFileConfiguration(null)
-        public StringConfiguration(string xmlConfiguration)
-        {
-            // Default values assigned
-            Initialize();
-       
-            var provider = new StringConfigurationProvider<StringConfiguration>()
-            {
-                EncryptionKey = "ultra-seekrit",  // use a generated value here
-                PropertiesToEncrypt = "Password,AppConnectionString",                   
-            };                            
-            
-            // assign the provider
-            Provider = provider;
-
-            // read config from string
-            if (!string.IsNullOrEmpty(xmlConfiguration))
-                Read(xmlConfiguration);        
-        }
-
         public string ApplicationName { get; set; }
         public DebugModes DebugMode { get; set; }
         public int MaxDisplayListItems { get; set; }
@@ -47,7 +19,8 @@ namespace Westwind.Utilities.Configuration.Tests
         public string Password { get; set; }
         public string AppConnectionString { get; set; }
 
-        protected override void Initialize()
+        // Must implement public default constructor
+        public StringConfiguration()
         {
             ApplicationName = "Configuration Tests";
             DebugMode = DebugModes.Default;
@@ -56,6 +29,26 @@ namespace Westwind.Utilities.Configuration.Tests
             Password = "seekrit";
             AppConnectionString = "server=.;database=hosers;uid=bozo;pwd=seekrit;";
         }
-    }
 
+        protected override IConfigurationProvider OnCreateDefaultProvider(string sectionName, object configData)
+        {
+var provider = new StringConfigurationProvider<StringConfiguration>()
+{
+    InitialStringData = configData as String,
+    EncryptionKey = "ultra-seekrit",  // use a generated value here
+    PropertiesToEncrypt = "Password,AppConnectionString",
+};
+
+            return provider;
+        }
+
+        /// <summary>
+        /// Optional - easier overload for xml string loading
+        /// </summary>
+        /// <param name="xml"></param>
+        public void Initialize(string xml)
+        {
+            base.Initialize(configData: xml);
+        }
+    }
 }

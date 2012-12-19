@@ -15,23 +15,26 @@ automatically created (provided permissions allow it).
 
 This library provides:
 
+* Strongly typed classes for configuration values
 * Automatic type conversion from configuration store to class properties
-* Default values for configuration values (never worry about null values)
+* Default values for configuration values (never worry about read failures)
 * Optional encryption of individual keys
 * Automatic creation of configuration store if it doesn't exist
 * Automatic addition of values that don't exist in configuration store
+  (your store stays in sync with your class automatically)
 * Support for multiple configuration objects simultaneously
 * Works in any kind of .NET application: Web, Desktop, Console, Service...
 
-Default Configuration Storage format:
+Default Configuration Storage formats:
 
 * Standard .NET .config files
-* Specific Configuration Sections
-* External Configuration Files
-* Plain XML files
+	* Custom Configuration Sections
+	* External Configuration Files
+    * AppSettings
+* Standalone, plain XML files
 * Strings
 * Sql Server Tables
-* Option to create custom ConfigurationProviders
+* Customizable to create your own Configuration Providers
 
 More detailed documentation is available as part of the Westwind.WebToolkit
 here:
@@ -46,7 +49,7 @@ West Wind Application Configuration is also part of:
 To create configurations, simply create a class that holds properties
 for each configuration value. The class maps configuration values
 stored in the configuration file. Values are stored as string in 
-the configuration store, but accessed as strongly typed values
+the configuration store, but are accessed as strongly typed values
 in your class.
 
 The library allows for reading and writing of configuration data
@@ -54,57 +57,54 @@ The library allows for reading and writing of configuration data
 if values don't exist in the configuration store. Your class ALWAYS
 has default values.
 
-To use you simply create a class and implement this minimal code:
+To use you simply create a class derived from AppConfiguration and add properties:
 
 	public class ApplicationConfiguration : Westwind.Utilities.Configuration.AppConfiguration
-	{
-	    public ApplicationConfiguration() : base(null,"MyConfiguration")
-	    { }
-	    
-	    // Create properties to read or persist to/from the config store
+	{    
 	    public string ApplicationTitle { get; set; }
 	    public string ConnectionString {get; set; }
 	    public DebugModes DebugMode {get; set; }  // enum
 	    public int MaxPageItems {get; set; }   // number
 
-	    // put property initialization into this separate method
-	    // Base constructors calls this to initialize instance before reading from store
-	    public override void Initialize()
+	    public ApplicationConfiguration()
 	    {
-	           // set any default values or other init functionality
 	           ApplicationTitle = "West Wind Web Toolkit Sample";
 	           DebugMode = DebugModes.ApplicationErrorMessage;
 	           MaxPageItems = 20;
 	    }
 	}
 
-This example maps the class properties to a standard web.config 
-file (or app.config in non-Web apps) and reads and (optionally) writes
-data there. If write permissions are available the default settings
-are written automatically to the configuration file as well. Even
-if settings don't exist the classes default values will always be
-available.
+Each property maps to a configuration store setting.
 
-To use the class you simply create an instance:
+To use the class you simply create an instance and call Initialize() then
+read configuration values that were read from the configuration store, or
+default values if store values don't exist:
 
 	// Create an instance - typically you'd use a static singleton instance
 	var config = new ApplicationConfiguration();
-	
-	// Read values - retrieved from web.config/MyApplicationConfiguration
+	config.Initialize();  
+
+	// Now read values retrieved from web.config/ApplicationConfiguration Section
+    // If write access is available, the section is auto-created if it doesn't exist
 	string title = config.ApplicationTitle;
 	DebugModes modes = config.DebugMode;  
 	
 	// You can also update values
 	config.MaxPageItems = 15;
+	config.DebugMode = DebugModes.ApplicationErrorMessage;  
 	
-	// And save changes to config store if permissions allow
+	// Save values to configuration store if permissions allow
 	config.Write();
 
-or, more effectively, create a static instance in application scope:
+The above instantiation works, but typically in an application you'll want
+to reuse the configuration object without having to reinstantiate it each time.
+
+More effectively, create a static instance in application scope and initialize
+it once, then re-use everywhere in your application or component:
 
 	public class App
 	{
-	    // static property on any class
+	    // static property on any class in your app or component
 	    public static ApplicationConfiguration Configuration { get; set; }
 	
 	    // static constructor ensures this code runs only once 
@@ -113,117 +113,143 @@ or, more effectively, create a static instance in application scope:
 	    {
 	        /// Load the properties from the Config store
 	        Configuration = new ApplicationConfiguration();
+	        Configuration.Initialize();
 	    }
 	}
 
-You can then use the configuration class globally without recreating:
+You can then use the configuration class anywhere, globally without recreating:
 
 	int maxItems = App.Configuration.MaxPageItems;
 	DebugModes mode = App.Configuration.DebugMode;
 
-You can create multiple application configuration classes, and store each
-configuration settings in a different section, a different file or even an
-entirely different configuration format.
+Once instantiated you can also use Read() and Write() to re-read or
+write values to the underlying configuration store.
+
+Note that you can easily create multiple application configuration classes,
+which is great for complex apps that need to categorize configuration,
+or for self-contained components that need to handle their own internal
+configuration settings.
 
 ## Configuration Providers
-By default configuration information is stored in standard config files,
-preferrably in custom sections. The example above demonstrates this
-by simply calling the base constructors to provide default behavior
-that stores data in the application .config file and a custom section.
+By default configuration information is stored in standard config files.
+When calling the stock Initialize() method with no parameters, you get
+configuration settings stored in an app/web.config file with
+a section that matches the class name.
 
-To use a non-default provider or customize the provider with additional
-information you can explicitly assign a provider by overriding the 
-constructor and explicitly creating a provider object. Rather than 
-the default constructor shown above you can use the following:
+To customize the configuration provider you can create an instance
+and pass in one of the providers with customizations applied:
 
-	public class MyApplicationConfiguration : Westwind.Utilities.Configuration.AppConfiguration
-	{
-	    /// <summary>
-	    /// Always implement a default constructor so new instances
-	    /// can be created by the various de-serialization config schemes.
-            /// This is not necessary for .config files but required for
-            /// Xml files, string and database providers.            
-	    /// </summary>
-	    public ApplicationConfiguration() 
-	    {
-	         this.Initialize()
-	    }
+    public static App 
+    {
+		App.Config = new AutoConfigFileConfiguration();
 
-	    /// <summary>
-	    /// By convention a second constructor that takes a Config Provider
-	    /// or null as an optional parameter should be implemented. This
-	    /// ctor should implement auto-load behavior and create a default
-	    /// provider for the object. Typically called like this:
-	    ///
-	    /// App.Configuration = new ApplicationConfiguration(null);
-	    /// 
-	    /// Note: this constructor calls back to parameterless one to
-	    /// ensure the default values are set
-	    /// </summary>  
-	    public ApplicationConfiguration(IConfigurationProvider provider)
-	    {
-	        this.Initialize();
+		// Create a customized provider to set provider options
+		// Note: several different providers are available    
+		var provider = new ConfigurationFileConfigurationProvider<AutoConfigFileConfiguration>()
+		{
+			ConfigurationSection = "CustomConfiguration",
+			EncryptionKey = "seekrit123",
+			PropertiesToEncrypt = "MailServer,MailServerPassword"                
+		};
 
-	        if (provider == null)
-	        {
-	            // create any custom provider instance here
-	            this.Provider = new ConfigurationFileConfigurationProvider<ApplicationConfiguration>()
-	            {
-	                PropertiesToEncrypt = "MailServerPassword,ConnectionString",
-	                EncryptionKey = "secret",
-	                ConfigurationSection = "MyConfiguration"
-                        // ConfigurationFile = "MyConfigFile.config"
-	            };
-	        }
-	        else
-	            this.Provider = provider;
-
-	        // now read the configuration data from the store
-	        this.Provider.Read(this);
-	    }
-
-	    public string ApplicationTitle { get; set; }
-	    public string ApplicationSubTitle { get; set; } 
-	    public string ConnectionString {get; set; }
-	    public DebugModes DebugMode {get; set; }
-	    public int MaxPageItems {get; set; }
-
-	    // centralized initialization so both constructors can use it
-	    public override void Initialize()
-	    {
-	        // set any default values here
-	        ApplicationTitle = "West Wind Web Toolkit Sample";
-	        DebugMode = DebugModes.ApplicationErrorMessage;
-	        MaxPageItems = 20;
-	    }
+		App.Config.Initialize(provider);  
 	}
 
-Here an ConfigurationFileProvider is explictly created when the provider is passed as null.
-To fire this custom code:
+Alternately you can abstract the above logic directly into your configuration
+class by overriding the OnInitialize() method to provide your default 
+initialization logic which keeps all configuration related logic in 
+one place.
 
-	// Initialize global reference - IMPORTANT: Note the non-default (null) parameter
-	App.Configuration = new MyApplicationConfiguration(null);
+The following creates a new configuration using the Database provider to store
+the configuration information:
 
-and to use it in your application:
+    public class DatabaseConfiguration : Westwind.Utilities.Configuration.AppConfiguration
+    {
+        public DatabaseConfiguration()
+        {
+            ApplicationName = "Configuration Tests";
+            DebugMode = DebugModes.Default;
+            MaxDisplayListItems = 15;
+            SendAdminEmailConfirmations = false;
+            Password = "seekrit";
+            AppConnectionString = "server=.;database=hosers;uid=bozo;pwd=seekrit;";
+        }
 
-	var title = App.Configuration.ApplicationTitle;
-	DebugModes mode = App.Configuration.DebugMode;
+        public string ApplicationName { get; set; }
+        public DebugModes DebugMode { get; set; }
+        public int MaxDisplayListItems { get; set; }
+        public bool SendAdminEmailConfirmations { get; set; }
+        public string Password { get; set; }
+        public string AppConnectionString { get; set; }
+        
+        /// <summary>
+        /// Override this method to create the custom default provider - in this case a database
+        /// provider with a few options. Config data can be passed in for connectionstring and table
+        /// </summary>
+        protected override IConfigurationProvider OnCreateDefaultProvider(string sectionName, object configData)
+        {
+            // default connect values
+            string connectionString =  "LocalDatabaseConnection";
+            string tableName = "ConfigurationData";
+
+            // ConfigData: new { ConnectionString = "...", Tablename = "..." }
+            if (configData != null)
+            {
+                dynamic data = configData;
+                connectionString = data.ConnectionString;
+                tableName = data.Tablename;                       
+            }
+
+            var provider = new SqlServerConfigurationProvider<DatabaseConfiguration>()
+            {
+                ConnectionString = connectionString,
+                Tablename = tableName,
+                ProviderName = "System.Data.SqlServerCe.4.0",
+                EncryptionKey = "ultra-seekrit",  // use a generated value here
+                PropertiesToEncrypt = "Password,AppConnectionString"
+                // UseBinarySerialization = true                     
+            };
+
+            return provider;
+        }    
+
+        /// <summary>
+        /// Optional - simplify Initialize() for database provider default
+        /// </summary>
+        public void Initialize(string connectionString, string tableName = null)
+        {
+            base.Initialize(configData: new { ConnectionString = connectionString, Tablename = tableName });
+        }
+    }
+
+You can override the OnCreateDefaultProfile() method and configure a provider, or the slightly
+higher level OnInitialize() which creates a provider and then reads the content. Either one allows
+customization of the default Initialization() when Initialize is called with no explicit Provider.
 
 ##Multiple Configuration Stores
 To create multiple configuration stores simply create multiple classes and 
-access each class. Ideally you store the configuration objects on a global
-static instance like this:
+access each class individually. A single app can easily have multiple configuration
+classes to separate distinct sections or tasks within an application.
+Ideally you store the configuration objects on a global static instance like this:
 
 	App.Configuration = new MyApplicationConfiguration(null);
 	App.AdminConfiguration = new AdminConfiguration(null);
 
 This allows for nice compartmentalization of configuration settings and
-also allows multiple components/assemblies to use the same configuration
-class, but store settings in separate locations.
+also for multiple components/assemblies to have their own private 
+configuration settings.
+
+## Class Structure
+This library consists of the main AppConfiguration class plus provider
+logic. Providers are based on a IConfigurationProvider interface with
+a ConfigurationProviderBase class providing base functionality.
+
+Here's the complete class layout:
+![Classes](https://raw.github.com/RickStrahl/Westwind.ApplicationConfiguration/Version2_InitializationChanges/AppConfiguration.png)
 
 ##Many More Options
 Many more configuration options are available. Please check the full documentation
 for more information.
 
-* [Westwind.ApplicationConfiguration Documentation](http://west-wind.com/westwindwebtoolkit/docs?page=_2le027umn.htm)
-* [Westwind.ApplicationConfiguration Class Reference](http://west-wind.com/westwindwebtoolkit/docs?page=_3ff0psdpu.htm)
+* [Westwind.ApplicationConfiguration Documentation](http://west-wind.com/Westwind.ApplicationConfiguration/docs/?page=_2le027umn.htm)
+* [Westwind.ApplicationConfiguration Class Reference](http://west-wind.com/Westwind.ApplicationConfiguration/docs/?page=_3ff0psdpu.htm)
