@@ -1,12 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Comment CommentText="&lt;--  User implemented class&#xD;&#xA;      &#xD;&#xA;      Just add properties for&#xD;&#xA;      config values">
-    <Position X="2.98" Y="3.552" Height="0.682" Width="1.7" />
+    <Position X="3.761" Y="1.448" Height="0.682" Width="1.7" />
   </Comment>
   <Class Name="Westwind.Utilities.Configuration.AppConfiguration">
-    <Position X="0.5" Y="0.5" Width="2.25" />
+    <Position X="1.25" Y="3" Width="2.25" />
+    <AssociationLine Name="Provider" Type="Westwind.Utilities.Configuration.IConfigurationProvider" FixedFromPoint="true">
+      <Path>
+        <Point X="3.5" Y="3.688" />
+        <Point X="5.75" Y="3.688" />
+      </Path>
+    </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AQAAAAAAAAAEAQAAAAAIAAAgAAACAAAAAAAAAAEAAAA=</HashCode>
+      <HashCode>AQAAAAAAAAAEAQAAAAAIAAAgAAACAAAAAAAAAAEAAAI=</HashCode>
       <FileName>AppConfiguration.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -14,21 +20,21 @@
     </ShowAsAssociation>
   </Class>
   <Class Name="Westwind.Utilities.Configuration.ConfigurationProviderBase&lt;TAppConfiguration&gt;">
-    <Position X="7" Y="0.5" Width="3.25" />
+    <Position X="9" Y="1.25" Width="3.25" />
     <TypeIdentifier>
       <HashCode>AQBBAYAAAYAQAQAAAAAAAAAgAAAAAAAAAAAAIQEAAAE=</HashCode>
       <FileName>ConfigurationProviderBase.cs</FileName>
     </TypeIdentifier>
-    <Lollipop Position="0.2" />
+    <Lollipop Position="0.57" />
   </Class>
   <Class Name="Westwind.Utilities.Configuration.XmlFileConfigurationProvider&lt;TAppConfiguration&gt;">
-    <Position X="9" Y="5.25" Width="3.5" />
+    <Position X="8.25" Y="6" Width="3.25" />
     <InheritanceLine Type="Westwind.Utilities.Configuration.ConfigurationProviderBase&lt;TAppConfiguration&gt;" ManuallyRouted="true">
       <Path>
-        <Point X="8.625" Y="3.877" />
-        <Point X="8.625" Y="5.081" />
-        <Point X="10.75" Y="5.081" />
-        <Point X="10.75" Y="5.25" />
+        <Point X="10.625" Y="4.627" />
+        <Point X="10.625" Y="5.591" />
+        <Point X="9.875" Y="5.591" />
+        <Point X="9.875" Y="6" />
       </Path>
     </InheritanceLine>
     <TypeIdentifier>
@@ -37,20 +43,20 @@
     </TypeIdentifier>
   </Class>
   <Class Name="Westwind.Utilities.Configuration.ConfigurationFileConfigurationProvider&lt;TAppConfiguration&gt;">
-    <Position X="0.5" Y="5.25" Width="3.75" />
+    <Position X="0.5" Y="6" Width="3.75" />
     <TypeIdentifier>
       <HashCode>AAABAAAIQAAACAAAAAAAgAAoAAAAAQAAAAAAAAEAAAA=</HashCode>
       <FileName>ConfigurationFileConfigurationProvider.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Westwind.Utilities.Configuration.SqlServerConfigurationProvider&lt;TAppConfiguration&gt;">
-    <Position X="4.75" Y="5.25" Width="3.75" />
+    <Position X="4.5" Y="6" Width="3.5" />
     <InheritanceLine Type="Westwind.Utilities.Configuration.ConfigurationProviderBase&lt;TAppConfiguration&gt;" ManuallyRouted="true" FixedFromPoint="true">
       <Path>
-        <Point X="8.625" Y="3.877" />
-        <Point X="8.625" Y="5.083" />
-        <Point X="6.625" Y="5.083" />
-        <Point X="6.625" Y="5.25" />
+        <Point X="10.625" Y="4.627" />
+        <Point X="10.625" Y="5.604" />
+        <Point X="6.25" Y="5.604" />
+        <Point X="6.25" Y="6" />
       </Path>
     </InheritanceLine>
     <TypeIdentifier>
@@ -59,14 +65,21 @@
     </TypeIdentifier>
   </Class>
   <Class Name="Westwind.Utilities.Configuration.MyAppConfiguration">
-    <Position X="0.5" Y="3.25" Width="2.25" />
+    <Position X="1.25" Y="0.5" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AgAAAAAAAAAAACAAAAAAEAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AgAAAAAAAAAAACAAAAAAEAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
       <FileName>AppConfiguration.cs</FileName>
     </TypeIdentifier>
   </Class>
+  <Class Name="Westwind.Utilities.Configuration.StringConfigurationProvider&lt;TAppConfiguration&gt;">
+    <Position X="11.75" Y="6" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAEAAAAAAEAAAA=</HashCode>
+      <FileName>StringConfigurationProvider.cs</FileName>
+    </TypeIdentifier>
+  </Class>
   <Interface Name="Westwind.Utilities.Configuration.IConfigurationProvider">
-    <Position X="3.75" Y="0.5" Width="2.25" />
+    <Position X="5.75" Y="2.5" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AQAAAYAAAYAAAQAAAAAAAAAgAAAAAAAAAAAAAQEAAAA=</HashCode>
       <FileName>IConfigurationProvider.cs</FileName>

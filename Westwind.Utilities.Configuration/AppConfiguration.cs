@@ -477,6 +477,11 @@ namespace Westwind.Utilities.Configuration
         public string MyProperty { get; set; }
         public int MaxPageListItems { get; set; }
         public string ApplicationTitle { get; set; }
+
+        protected override IConfigurationProvider OnCreateDefaultProvider(string sectionName, object configData)
+        {
+            return base.OnCreateDefaultProvider(sectionName, configData);
+        }
     }
 }
 
