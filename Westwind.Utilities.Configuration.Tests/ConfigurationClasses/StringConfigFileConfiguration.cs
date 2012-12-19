@@ -33,27 +33,38 @@ namespace Westwind.Utilities.Configuration.Tests
             base.Initialize(configData: xml);
         }
 
-
-        protected override void OnInitialize(IConfigurationProvider provider = null, 
-                                             string sectionName = null, 
-                                             object configData = null)
+        protected override IConfigurationProvider OnCreateDefaultProvider(string sectionName, object configData)
         {
-            if (provider == null)
+            var provider = new StringConfigurationProvider<StringConfiguration>()
             {
-                provider = new StringConfigurationProvider<StringConfiguration>()
-                {
-                    EncryptionKey = "ultra-seekrit",  // use a generated value here
-                    PropertiesToEncrypt = "Password,AppConnectionString",
-                };
-            }
-                      
-            // assign the provider
-            Provider = provider;
+                InitialStringData = configData as String,
+                EncryptionKey = "ultra-seekrit",  // use a generated value here
+                PropertiesToEncrypt = "Password,AppConnectionString",
+            };
 
-            // read config from string
-            if (configData != null && configData is string)
-                Read(configData as string);        
+            return provider;
         }
+
+        //protected override void OnInitialize(IConfigurationProvider provider = null,
+        //                                     string sectionName = null,
+        //                                     object configData = null)
+        //{
+        //    if (provider == null)
+        //    {
+        //        provider = new StringConfigurationProvider<StringConfiguration>()
+        //        {
+        //            EncryptionKey = "ultra-seekrit",  // use a generated value here
+        //            PropertiesToEncrypt = "Password,AppConnectionString",
+        //        };
+        //    }
+
+        //    // assign the provider
+        //    Provider = provider;
+
+        //    // read config from string
+        //    if (configData != null && configData is string)
+        //        Read(configData as string);
+        //}
 
         public string ApplicationName { get; set; }
         public DebugModes DebugMode { get; set; }

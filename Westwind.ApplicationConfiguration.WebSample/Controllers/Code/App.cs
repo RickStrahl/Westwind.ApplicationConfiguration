@@ -16,7 +16,8 @@ namespace ApplicationConfigurationWeb
 	     static App()
 	    {
             // Create an instance of the class with default provider
-            Configuration = new ApplicationConfiguration(null);
+            Configuration = new ApplicationConfiguration();
+            Configuration.Initialize();
 	    }
     }
 }

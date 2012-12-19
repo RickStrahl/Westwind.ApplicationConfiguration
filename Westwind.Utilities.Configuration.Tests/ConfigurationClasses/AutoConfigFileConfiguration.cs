@@ -27,12 +27,16 @@ namespace Westwind.Utilities.Configuration.Tests
             DebugMode = DebugModes.Default;
             MaxDisplayListItems = 15;
             SendAdminEmailConfirmations = false;
+            MailServer = "mail.MyWickedServer.com:334";
+            MailServerPassword = "seekrity";
         }
 
         public string ApplicationName { get; set; }
         public DebugModes DebugMode { get; set; }
         public int MaxDisplayListItems { get; set; }
         public bool SendAdminEmailConfirmations { get; set; }
+        public string MailServer { get; set; }
+        public string MailServerPassword { get; set; }
 
      
     }
@@ -51,7 +55,6 @@ namespace Westwind.Utilities.Configuration.Tests
             DebugMode = DebugModes.Default;
             MaxDisplayListItems = 15;
             SendAdminEmailConfirmations = false;
-
 
             // Automatically initialize this one
             this.Initialize();

@@ -25,35 +25,6 @@ namespace Westwind.Utilities.Configuration.Tests
             AppConnectionString = "server=.;database=hosers;uid=bozo;pwd=seekrit;";
         }
 
-        // Automatically initialize with default config and config file
-        public void Initialize(string configFile)
-        {
-            base.Initialize(configData: configFile);
-        }
-
-        protected override void OnInitialize(IConfigurationProvider provider = null, 
-                                             string sectionName = null,
-                                             object configData = null)
-        {
-            if (provider == null)
-            {
-                string xmlFile = "XmlConfiguration.xml";                 
-
-                provider = new XmlFileConfigurationProvider<XmlFileConfiguration>()
-                {
-                    XmlConfigurationFile = xmlFile,
-                    EncryptionKey = "ultra-seekrit",  // use a generated value here
-                    PropertiesToEncrypt = "Password,AppConnectionString"
-                    // UseBinarySerialization = true                     
-                };
-            }
-
-            // assign the provider
-            Provider = provider;
-            Read(); 
-        }
-
-
         public string ApplicationName { get; set; }
         public DebugModes DebugMode { get; set; }
         public int MaxDisplayListItems { get; set; }
@@ -61,7 +32,27 @@ namespace Westwind.Utilities.Configuration.Tests
         public string Password { get; set; }
         public string AppConnectionString { get; set; }
 
-      
-    }
+        // Automatically initialize with default config and config file
+        public void Initialize(string configFile)
+        {
+            base.Initialize(configData: configFile);
+        }
 
+        protected override IConfigurationProvider OnCreateDefaultProvider(string sectionName, object configData)
+        {
+            string xmlFile = "XmlConfiguration.xml";
+            if (configData != null)
+                xmlFile = xmlFile;
+
+            var provider = new XmlFileConfigurationProvider<XmlFileConfiguration>()
+            {
+                XmlConfigurationFile = xmlFile,
+                EncryptionKey = "ultra-seekrit",  // use a generated value here
+                PropertiesToEncrypt = "Password,AppConnectionString"
+                // UseBinarySerialization = true                     
+            };
+
+            return provider;
+        }
+    }
 }
