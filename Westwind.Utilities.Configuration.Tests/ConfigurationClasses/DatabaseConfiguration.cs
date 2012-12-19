@@ -12,7 +12,13 @@ namespace Westwind.Utilities.Configuration.Tests
     /// </summary>
     public class DatabaseConfiguration : Westwind.Utilities.Configuration.AppConfiguration
     {
-
+        public string ApplicationName { get; set; }
+        public DebugModes DebugMode { get; set; }
+        public int MaxDisplayListItems { get; set; }
+        public bool SendAdminEmailConfirmations { get; set; }
+        public string Password { get; set; }
+        public string AppConnectionString { get; set; }
+        
         // Must implement public default constructor
         public DatabaseConfiguration()
         {
@@ -24,13 +30,7 @@ namespace Westwind.Utilities.Configuration.Tests
             AppConnectionString = "server=.;database=hosers;uid=bozo;pwd=seekrit;";
         }
 
-        public string ApplicationName { get; set; }
-        public DebugModes DebugMode { get; set; }
-        public int MaxDisplayListItems { get; set; }
-        public bool SendAdminEmailConfirmations { get; set; }
-        public string Password { get; set; }
-        public string AppConnectionString { get; set; }
-        
+
         /// <summary>
         /// Optional - Create a custom overload with required parameters
         /// </summary>

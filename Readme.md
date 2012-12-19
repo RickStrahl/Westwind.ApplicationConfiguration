@@ -30,7 +30,8 @@ Default Configuration Storage formats:
 * Standard .NET .config files
 	* Custom Configuration Sections
 	* External Configuration Files
-* Plain XML files (Xml Serialization)
+    * AppSettings
+* Standalone, plain XML files
 * Strings
 * Sql Server Tables
 * Customizable to create your own Configuration Providers
@@ -227,14 +228,15 @@ customization of the default Initialization() when Initialize is called with no 
 
 ##Multiple Configuration Stores
 To create multiple configuration stores simply create multiple classes and 
-access each class. Ideally you store the configuration objects on a global
-static instance like this:
+access each class individually. A single app can easily have multiple configuration
+classes to separate distinct sections or tasks within an application.
+Ideally you store the configuration objects on a global static instance like this:
 
 	App.Configuration = new MyApplicationConfiguration(null);
 	App.AdminConfiguration = new AdminConfiguration(null);
 
 This allows for nice compartmentalization of configuration settings and
-also allows multiple components/assemblies to have their own private 
+also for multiple components/assemblies to have their own private 
 configuration settings.
 
 ## Class Structure
