@@ -12,63 +12,43 @@ namespace ApplicationConfigurationWeb
     public class ApplicationConfiguration : AppConfiguration
     {
 
-        // This is the easy way to implement default .config file behavior
-        // public ApplicationConfiguration(IConfigurationProvider provider) : base(provider,"AppConfiguration") 
-        // {}
-
         /// <summary>
-        /// This is a custom implementation that explicitly configures the 
-        /// provider. Use this if you want to use a string, plain XML or SQL
-        /// to store your config data or you want to configure encryption on
-        /// specific keys
-        /// 
-        /// By convention a second constructor that takes a Config Provider
-        /// or null as an optional parameter should be implemented. This
-        /// ctor should implement auto-load behavior and create a default
-        /// provider for the object. Typically called like this:
-        ///
-        /// App.Configuration = new ApplicationConfiguration(null);
+        /// Override default provider creation by using custom options
         /// </summary>
-        /// <param name="provider"></param>
-        public ApplicationConfiguration(IConfigurationProvider provider)
+        /// <param name="sectionName"></param>
+        /// <param name="configData"></param>
+        /// <returns></returns>
+        protected override IConfigurationProvider OnCreateDefaultProvider(string sectionName, object configData)
         {
-            // make sure to call initialize to get default values           
-            Initialize();
-
-            // if no provider was passed create one explicitly
-            if (provider == null)
+            
+            var provider = new ConfigurationFileConfigurationProvider<ApplicationConfiguration>()
             {
-                this.Provider = new ConfigurationFileConfigurationProvider<ApplicationConfiguration>()
-                {
-                    // use the machine key to seed encoding key string or provide any other string
-                    EncryptionKey = MachineKey.Encode(new byte[] { 3, 233, 8, 11, 32, 44 }, 
-                                                      MachineKeyProtection.Encryption),                    
-                    PropertiesToEncrypt = "MailServerPassword,ConnectionString",
-                    // Custom section - if not specified goes to AppSettings
-                    ConfigurationSection = "ApplicationConfiguration"
-                };
+                // use the machine key to seed encoding key string or provide any other string
+                EncryptionKey = MachineKey.Encode(new byte[] { 3, 233, 8, 11, 32, 44 }, 
+                                                    MachineKeyProtection.Encryption),                    
+                PropertiesToEncrypt = "MailServerPassword,ConnectionString",
+                // Custom section - if not specified goes to AppSettings
+                ConfigurationSection = "ApplicationConfiguration"
+            };
 
-                // Example of Sql configuration
-                //this.Provider = new SqlServerConfigurationProvider<ApplicationConfiguration>()
-                //{
-                //    FieldsToEncrypt = "MailServerPassword,ConnectionString",
-                //    EncryptKey = "secret",
-                //    ConnectionString = "DevSampleConnectionString",
-                //    Tablename = "Configuration",
-                //    Key = 1
-                //};
-                // Example of external XML configuration - advantage: Supports complex object hierarchies
-                //this.Provider = new XmlFileConfigurationProvider<ApplicationConfiguration>()
-                //{
-                //    FieldsToEncrypt = "MailServerPassword,ConnectionString",
-                //    EncryptKey = "secret",
-                //    XmlConfigurationFile = HttpContext.Current.Server.MapPath("~/Configuration.xml")
-                //};
-            }
-            else
-                this.Provider = provider;
+            return provider;
 
-            this.Provider.Read(this);
+            // Example of Sql configuration
+            //var provider = new SqlServerConfigurationProvider<ApplicationConfiguration>()
+            //{
+            //    FieldsToEncrypt = "MailServerPassword,ConnectionString",
+            //    EncryptKey = "secret",
+            //    ConnectionString = "DevSampleConnectionString",
+            //    Tablename = "Configuration",
+            //    Key = 1
+            //};
+            // Example of external XML configuration - advantage: Supports complex object hierarchies
+            //var provider = new XmlFileConfigurationProvider<ApplicationConfiguration>()
+            //{
+            //    FieldsToEncrypt = "MailServerPassword,ConnectionString",
+            //    EncryptKey = "secret",
+            //    XmlConfigurationFile = HttpContext.Current.Server.MapPath("~/Configuration.xml")
+            //};
         }
 
         // Define properties and defaults

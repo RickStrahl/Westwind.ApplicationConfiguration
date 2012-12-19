@@ -43,8 +43,10 @@ namespace ApplicationConfigurationMvc.Controllers
             this.LoadAppConfiguration(model);
 
             if (this.AppConfig == null)
+            {
                 // Load the raw Config object without loading anything
-                this.AppConfig = new ApplicationConfiguration(null);            
+                AppConfig = new ApplicationConfiguration();                
+            }
 
             // Read all Formvars directly into the AppConfig
             WebUtils.FormVarsToObject(this.AppConfig, "Configuration.");
@@ -151,7 +153,7 @@ namespace ApplicationConfigurationMvc.Controllers
                 this.AppConfig = App.Configuration;
                 
                 // force to re-read in case we updated previously
-                this.AppConfig.Read();
+                AppConfig.Read();
             }
             
 
@@ -168,7 +170,8 @@ namespace ApplicationConfigurationMvc.Controllers
                      PropertiesToEncrypt = "ConnectionString,MailServerPassword", 
                      EncryptionKey = STR_SUPERSECRET
                 };
-                this.AppConfig = new ApplicationConfiguration(provider);
+                AppConfig = new ApplicationConfiguration();
+                AppConfig.Initialize(provider);
                 //this.AppConfig.Read();
             }
 
@@ -184,7 +187,8 @@ namespace ApplicationConfigurationMvc.Controllers
                     EncryptionKey = STR_SUPERSECRET
                 };
 
-                this.AppConfig = new ApplicationConfiguration(provider);
+                AppConfig = new ApplicationConfiguration();
+                AppConfig.Initialize(provider);
                 //this.AppConfig.Read();
             }
 
@@ -197,19 +201,21 @@ namespace ApplicationConfigurationMvc.Controllers
                     EncryptionKey = STR_SUPERSECRET
                 };
 
-                this.AppConfig = new ApplicationConfiguration(provider);
+                this.AppConfig = new ApplicationConfiguration();
+                AppConfig.Initialize(provider);
                 //this.AppConfig.Read();
             }
             else if (model.ConfigTypeSelection == "String")
             {
 
                 string XmlString = HttpContext.Application["XmlString"] as string;
-                this.AppConfig = new ApplicationConfiguration(null);
+                AppConfig = new ApplicationConfiguration();
+
                 if (XmlString != null)
                 {
                     // You can always read from an XML Serialization string w/o
                     // any provider setup
-                    this.AppConfig.Read(XmlString);
+                    AppConfig.Read(XmlString);
                 }
             }
 
@@ -226,7 +232,9 @@ namespace ApplicationConfigurationMvc.Controllers
                     EncryptionKey = STR_SUPERSECRET
                 };
 
-                this.AppConfig = new ApplicationConfiguration(provider);
+                AppConfig = new ApplicationConfiguration();
+                AppConfig.Initialize(provider);
+
                 if (!this.AppConfig.Read())
                     model.ShowError(
                       "Unable to connect to the Database.<hr>" +
