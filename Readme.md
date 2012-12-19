@@ -243,7 +243,7 @@ logic. Providers are based on a IConfigurationProvider interface with
 a ConfigurationProviderBase class providing base functionality.
 
 Here's the complete class layout:
-![Classes](rickstrahl.github.com/Westwind.ApplicationConfiguration/ApplicationConfiguration.png)
+![Classes](https://raw.github.com/RickStrahl/Westwind.ApplicationConfiguration/Version2_InitializationChanges/AppConfiguration.png)
 
 ##Many More Options
 Many more configuration options are available. Please check the full documentation
