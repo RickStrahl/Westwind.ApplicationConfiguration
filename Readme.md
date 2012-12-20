@@ -40,7 +40,7 @@ More detailed documentation is available as part of the Westwind.WebToolkit
 here:
 * [Main Product Page](http://west-wind.com/westwind.applicationconfiguration)
 * [Westwind.ApplicationConfiguration Documentation](http://west-wind.com/westwind.applicationconfiguration/docs)
-* [Westwind.ApplicationConfiguration Class Reference](hhttp://west-wind.com/westwind.ApplicationConfiguration/docs?page=_3lf07k2cg.htm)
+* [Westwind.ApplicationConfiguration Class Reference](hhttp://west-wind.com/westwind.applicationconfiguration/docs?page=_3lf07k2cg.htm)
 
 West Wind Application Configuration is also part of: 
 [West Wind Web and Ajax Toolkit's Westwind.Utilities library](http://west-wind.com/WestwindWebToolkit/)

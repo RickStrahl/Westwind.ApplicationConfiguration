@@ -62,7 +62,5 @@ namespace Westwind.Utilities.Configuration.Tests
             // Automatically initialize this one
             this.Initialize();
         }
-
     }
-
 }

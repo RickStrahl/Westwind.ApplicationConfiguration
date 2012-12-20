@@ -18,7 +18,7 @@ namespace Westwind.Utilities.Configuration.Tests
         public bool SendAdminEmailConfirmations { get; set; }
         public string Password { get; set; }
         public string AppConnectionString { get; set; }
-        
+
         // Must implement public default constructor
         public DatabaseConfiguration()
         {
@@ -38,7 +38,7 @@ namespace Westwind.Utilities.Configuration.Tests
         {
             base.Initialize(configData: new { ConnectionString = connectionString, Tablename = tableName });
         }
-        
+
         /// <summary>
         /// Override this method to create the custom default provider - in this case a database
         /// provider with a few options.
@@ -46,7 +46,7 @@ namespace Westwind.Utilities.Configuration.Tests
         protected override IConfigurationProvider OnCreateDefaultProvider(string sectionName, object configData)
         {
             // default connect values
-            string connectionString =  "LocalDatabaseConnection";
+            string connectionString = "LocalDatabaseConnection";
             string tableName = "ConfigurationData";
 
             // ConfigData: new { ConnectionString = "...", Tablename = "..." }
@@ -54,11 +54,12 @@ namespace Westwind.Utilities.Configuration.Tests
             {
                 dynamic data = configData;
                 connectionString = data.ConnectionString;
-                tableName = data.Tablename;                       
+                tableName = data.Tablename;
             }
 
             var provider = new SqlServerConfigurationProvider<DatabaseConfiguration>()
             {
+                Key = 0,
                 ConnectionString = connectionString,
                 Tablename = tableName,
                 ProviderName = "System.Data.SqlServerCe.4.0",
@@ -68,7 +69,7 @@ namespace Westwind.Utilities.Configuration.Tests
             };
 
             return provider;
-        }    
+        }
     }
 
 }

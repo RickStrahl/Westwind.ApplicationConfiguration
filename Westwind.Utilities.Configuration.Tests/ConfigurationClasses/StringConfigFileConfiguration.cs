@@ -32,12 +32,12 @@ namespace Westwind.Utilities.Configuration.Tests
 
         protected override IConfigurationProvider OnCreateDefaultProvider(string sectionName, object configData)
         {
-var provider = new StringConfigurationProvider<StringConfiguration>()
-{
-    InitialStringData = configData as String,
-    EncryptionKey = "ultra-seekrit",  // use a generated value here
-    PropertiesToEncrypt = "Password,AppConnectionString",
-};
+            var provider = new StringConfigurationProvider<StringConfiguration>()
+            {
+                InitialStringData = configData as String,
+                EncryptionKey = "ultra-seekrit",  // use a generated value here
+                PropertiesToEncrypt = "Password,AppConnectionString",
+            };
 
             return provider;
         }
