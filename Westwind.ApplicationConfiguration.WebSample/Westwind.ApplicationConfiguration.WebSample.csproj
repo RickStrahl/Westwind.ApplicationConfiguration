@@ -99,6 +99,7 @@
     <Content Include="Css\font-awesome.css" />
     <Content Include="Css\fontawesome-webfont.svg" />
     <Content Include="img\ApplicationConfigurationLogo.png" />
+    <Content Include="img\ApplicationConfigurationLogo_128x128.png" />
     <Content Include="img\ApplicationConfigurationLogo_65.png" />
     <Content Include="img\github.png" />
     <Content Include="img\wwtoollogo_text.png" />
