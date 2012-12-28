@@ -38,6 +38,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
     <Reference Include="System.Xml" />
@@ -61,8 +62,11 @@
     <Compile Include="ConfigurationClasses\StringConfigFileConfiguration.cs" />
     <Compile Include="ConfigurationClasses\CustomConfigFileConfiguration.cs" />
     <Compile Include="DatabaseConfigurationTests.cs" />
+    <Compile Include="MyCustomConfigurationSection.cs" />
     <Compile Include="SupportClasses\DebugModes.cs" />
     <Compile Include="AutoConfigFileConfigurationTests.cs" />
+    <Compile Include="Test.cs" />
+    <Compile Include="UnitTest1.cs" />
     <Compile Include="XmlFileConfigurationTests.cs" />
     <Compile Include="CustomConfigFileConfigurationTests.cs" />
     <Compile Include="StringConfigurationTests.cs" />
