@@ -42,8 +42,8 @@ namespace Westwind.Utilities.Configuration
 {
 
     /// <summary>
-    /// Reads and Writes configuration settings in .NET config files and 
-    /// sections. Allows reading and writing to default or external files 
+    /// Reads and Writes configuration settings in .NET configuration files.
+    /// Allows reading and writing to default or external files 
     /// and specification of the configuration section that settings are
     /// applied to.
     /// </summary>
@@ -185,7 +185,7 @@ namespace Westwind.Utilities.Configuration
                     ReflectionUtils.SetPropertyEx(config, fieldName,
                         ReflectionUtils.StringToTypedValue(value, fieldType, CultureInfo.InvariantCulture));
                 }
-                catch { ;}
+                catch { }
             }
 
             // We have to write any missing keys

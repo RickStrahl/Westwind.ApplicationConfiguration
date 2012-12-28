@@ -18,7 +18,7 @@ namespace Westwind.Utilities.Configuration.Tests
     /// When using XML, String, Database the default constructor 
     /// needs to be left at default to avoid recursive loading
     /// </summary>
-    class AutoConfigFileConfiguration : Westwind.Utilities.Configuration.AppConfiguration
+    public class AutoConfigFileConfiguration : Westwind.Utilities.Configuration.AppConfiguration
     {
         public string ApplicationName { get; set; }
         public DebugModes DebugMode { get; set; }

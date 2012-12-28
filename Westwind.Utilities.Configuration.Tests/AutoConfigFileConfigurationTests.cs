@@ -33,11 +33,15 @@ namespace Westwind.Utilities.Configuration.Tests
 
         [TestMethod]
         public void DefaultConstructorInstanceTest()
-        {         
+        {
             var config = new AutoConfigFileConfiguration();
-            
+
             // gets .config file, AutoConfigFileConfiguration section
-            config.Initialize();
+            config.Initialize(sectionName: "MyAdminConfiguration");
+
+            string appName = config.ApplicationName;
+            DebugModes mode = config.DebugMode;
+            int maxItems = config.MaxDisplayListItems;
 
             Assert.IsNotNull(config);
             Assert.IsFalse(string.IsNullOrEmpty(config.ApplicationName));
@@ -55,18 +59,18 @@ namespace Westwind.Utilities.Configuration.Tests
             // Create a customized provider to set provider options
             var provider = new ConfigurationFileConfigurationProvider<AutoConfigFileConfiguration>()
             {
-                ConfigurationSection = "CustomConfiguration",
+                ConfigurationSection = "MyCustomConfiguration",
                 EncryptionKey = "seekrit123",
-                PropertiesToEncrypt = "MailServer,MailServerPassword"                
+                PropertiesToEncrypt = "MailServer,MailServerPassword"
             };
 
-            config.Initialize(provider);  
-            
+            config.Initialize(provider);
+
             // Config File and custom section should exist
             string text = File.ReadAllText(TestHelpers.GetTestConfigFilePath());
 
             Assert.IsFalse(string.IsNullOrEmpty(text));
-            Assert.IsTrue(text.Contains("<CustomConfiguration>"));
+            Assert.IsTrue(text.Contains("<MyCustomConfiguration>"));
 
             // MailServer/MailServerPassword value should be encrypted
             Console.WriteLine(text);
@@ -74,7 +78,7 @@ namespace Westwind.Utilities.Configuration.Tests
 
         [TestMethod]
         public void AutoConfigWriteConfigurationTest()
-        {            
+        {
             var config = new AutoConfigFileConfiguration();
             config.Initialize();
 
@@ -134,7 +138,7 @@ namespace Westwind.Utilities.Configuration.Tests
         public void DefaultConstructor2InstanceTest()
         {
             var config = new AutoConfigFile2Configuration();
-            
+
             // Not required since custom constructor calls this
             //config.Initialize();
 
@@ -153,7 +157,7 @@ namespace Westwind.Utilities.Configuration.Tests
         public void WriteConfiguration2Test()
         {
             var config = new AutoConfigFile2Configuration();
-            
+
             // not necesary since constructor calls internally
             //config.Initialize();
 

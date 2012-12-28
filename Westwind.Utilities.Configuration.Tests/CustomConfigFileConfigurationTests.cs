@@ -44,6 +44,9 @@ namespace Westwind.Utilities.Configuration.Tests
             Console.WriteLine(text);          
         }
 
+     
+
+
         [TestMethod]
         public void WriteConfigurationTest()
         {
