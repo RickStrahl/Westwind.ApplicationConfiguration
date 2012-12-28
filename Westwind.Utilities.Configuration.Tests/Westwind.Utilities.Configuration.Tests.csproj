@@ -65,7 +65,6 @@
     <Compile Include="MyCustomConfigurationSection.cs" />
     <Compile Include="SupportClasses\DebugModes.cs" />
     <Compile Include="AutoConfigFileConfigurationTests.cs" />
-    <Compile Include="Test.cs" />
     <Compile Include="UnitTest1.cs" />
     <Compile Include="XmlFileConfigurationTests.cs" />
     <Compile Include="CustomConfigFileConfigurationTests.cs" />
