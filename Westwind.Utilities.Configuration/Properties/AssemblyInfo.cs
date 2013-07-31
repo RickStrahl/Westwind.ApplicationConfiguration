@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Westwind.Utilities.Configuration")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Code-first, class based configuration storage for .NET")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("West Wind Technologies")]
 [assembly: AssemblyProduct("Westwind Utilities")]
 [assembly: AssemblyCopyright("Copyright © 2012-2013, West Wind Technologies")]
 [assembly: AssemblyTrademark("")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.01.0.0")]
-[assembly: AssemblyFileVersion("2.01.0.0")]
+[assembly: AssemblyVersion("2.02.0.0")]
+[assembly: AssemblyFileVersion("2.02.0.0")]

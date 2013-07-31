@@ -62,20 +62,22 @@ has default values.
 
 To use you simply create a class derived from AppConfiguration and add properties:
 
-	public class ApplicationConfiguration : Westwind.Utilities.Configuration.AppConfiguration
-	{    
-	    public string ApplicationTitle { get; set; }
-	    public string ConnectionString {get; set; }
-	    public DebugModes DebugMode {get; set; }  // enum
-	    public int MaxPageItems {get; set; }   // number
+```c#
+public class ApplicationConfiguration : Westwind.Utilities.Configuration.AppConfiguration
+{    
+	public string ApplicationTitle { get; set; }
+	public string ConnectionString {get; set; }
+	public DebugModes DebugMode {get; set; }  // enum
+	public int MaxPageItems {get; set; }   // number
 
-	    public ApplicationConfiguration()
-	    {
-	           ApplicationTitle = "West Wind Web Toolkit Sample";
-	           DebugMode = DebugModes.ApplicationErrorMessage;
-	           MaxPageItems = 20;
-	    }
+	public ApplicationConfiguration()
+	{
+	        ApplicationTitle = "West Wind Web Toolkit Sample";
+	        DebugMode = DebugModes.ApplicationErrorMessage;
+	        MaxPageItems = 20;
 	}
+}
+```
 
 Each property maps to a configuration store setting.
 
@@ -83,21 +85,23 @@ To use the class you simply create an instance and call Initialize() then
 read configuration values that were read from the configuration store, or
 default values if store values don't exist:
 
-	// Create an instance - typically you'd use a static singleton instance
-	var config = new ApplicationConfiguration();
-	config.Initialize();  
+```c#
+// Create an instance - typically you'd use a static singleton instance
+var config = new ApplicationConfiguration();
+config.Initialize();  
 
-	// Now read values retrieved from web.config/ApplicationConfiguration Section
-    // If write access is available, the section is auto-created if it doesn't exist
-	string title = config.ApplicationTitle;
-	DebugModes modes = config.DebugMode;  
+// Now read values retrieved from web.config/ApplicationConfiguration Section
+// If write access is available, the section is auto-created if it doesn't exist
+string title = config.ApplicationTitle;
+DebugModes modes = config.DebugMode;  
 	
-	// You can also update values
-	config.MaxPageItems = 15;
-	config.DebugMode = DebugModes.ApplicationErrorMessage;  
+// You can also update values
+config.MaxPageItems = 15;
+config.DebugMode = DebugModes.ApplicationErrorMessage;  
 	
-	// Save values to configuration store if permissions allow
-	config.Write();
+// Save values to configuration store if permissions allow
+config.Write();
+```
 
 The above instantiation works, but typically in an application you'll want
 to reuse the configuration object without having to reinstantiate it each time.
@@ -105,25 +109,29 @@ to reuse the configuration object without having to reinstantiate it each time.
 More effectively, create a static instance in application scope and initialize
 it once, then re-use everywhere in your application or component:
 
-	public class App
-	{
-	    // static property on any class in your app or component
-	    public static ApplicationConfiguration Configuration { get; set; }
+```c#
+public class App
+{
+	// static property on any class in your app or component
+	public static ApplicationConfiguration Configuration { get; set; }
 	
-	    // static constructor ensures this code runs only once 
-	    // the first time any static property is accessed
-	    static App()
-	    {
-	        /// Load the properties from the Config store
-	        Configuration = new ApplicationConfiguration();
-	        Configuration.Initialize();
-	    }
+	// static constructor ensures this code runs only once 
+	// the first time any static property is accessed
+	static App()
+	{
+	    /// Load the properties from the Config store
+	    Configuration = new ApplicationConfiguration();
+	    Configuration.Initialize();
 	}
+}
+```
 
 You can then use the configuration class anywhere, globally without recreating:
 
-	int maxItems = App.Configuration.MaxPageItems;
-	DebugModes mode = App.Configuration.DebugMode;
+```c#
+int maxItems = App.Configuration.MaxPageItems;
+DebugModes mode = App.Configuration.DebugMode;
+```
 
 Once instantiated you can also use Read() and Write() to re-read or
 write values to the underlying configuration store.
@@ -142,21 +150,23 @@ a section that matches the class name.
 To customize the configuration provider you can create an instance
 and pass in one of the providers with customizations applied:
 
-    public static App 
-    {
-		App.Config = new AutoConfigFileConfiguration();
+```c#
+public static App 
+{
+	App.Config = new AutoConfigFileConfiguration();
 
-		// Create a customized provider to set provider options
-		// Note: several different providers are available    
-		var provider = new ConfigurationFileConfigurationProvider<AutoConfigFileConfiguration>()
-		{
-			ConfigurationSection = "CustomConfiguration",
-			EncryptionKey = "seekrit123",
-			PropertiesToEncrypt = "MailServer,MailServerPassword"                
-		};
+	// Create a customized provider to set provider options
+	// Note: several different providers are available    
+	var provider = new ConfigurationFileConfigurationProvider<AutoConfigFileConfiguration>()
+	{
+		ConfigurationSection = "CustomConfiguration",
+		EncryptionKey = "seekrit123",
+		PropertiesToEncrypt = "MailServer,MailServerPassword"                
+	};
 
-		App.Config.Initialize(provider);  
-	}
+	App.Config.Initialize(provider);  
+}
+```
 
 Alternately you can abstract the above logic directly into your configuration
 class by overriding the OnInitialize() method to provide your default 
@@ -166,64 +176,66 @@ one place.
 The following creates a new configuration using the Database provider to store
 the configuration information:
 
-    public class DatabaseConfiguration : Westwind.Utilities.Configuration.AppConfiguration
+```c#
+public class DatabaseConfiguration : Westwind.Utilities.Configuration.AppConfiguration
+{
+    public DatabaseConfiguration()
     {
-        public DatabaseConfiguration()
-        {
-            ApplicationName = "Configuration Tests";
-            DebugMode = DebugModes.Default;
-            MaxDisplayListItems = 15;
-            SendAdminEmailConfirmations = false;
-            Password = "seekrit";
-            AppConnectionString = "server=.;database=hosers;uid=bozo;pwd=seekrit;";
-        }
-
-        public string ApplicationName { get; set; }
-        public DebugModes DebugMode { get; set; }
-        public int MaxDisplayListItems { get; set; }
-        public bool SendAdminEmailConfirmations { get; set; }
-        public string Password { get; set; }
-        public string AppConnectionString { get; set; }
-        
-        /// <summary>
-        /// Override this method to create the custom default provider - in this case a database
-        /// provider with a few options. Config data can be passed in for connectionstring and table
-        /// </summary>
-        protected override IConfigurationProvider OnCreateDefaultProvider(string sectionName, object configData)
-        {
-            // default connect values
-            string connectionString =  "LocalDatabaseConnection";
-            string tableName = "ConfigurationData";
-
-            // ConfigData: new { ConnectionString = "...", Tablename = "..." }
-            if (configData != null)
-            {
-                dynamic data = configData;
-                connectionString = data.ConnectionString;
-                tableName = data.Tablename;                       
-            }
-
-            var provider = new SqlServerConfigurationProvider<DatabaseConfiguration>()
-            {
-                ConnectionString = connectionString,
-                Tablename = tableName,
-                ProviderName = "System.Data.SqlServerCe.4.0",
-                EncryptionKey = "ultra-seekrit",  // use a generated value here
-                PropertiesToEncrypt = "Password,AppConnectionString"
-                // UseBinarySerialization = true                     
-            };
-
-            return provider;
-        }    
-
-        /// <summary>
-        /// Optional - simplify Initialize() for database provider default
-        /// </summary>
-        public void Initialize(string connectionString, string tableName = null)
-        {
-            base.Initialize(configData: new { ConnectionString = connectionString, Tablename = tableName });
-        }
+        ApplicationName = "Configuration Tests";
+        DebugMode = DebugModes.Default;
+        MaxDisplayListItems = 15;
+        SendAdminEmailConfirmations = false;
+        Password = "seekrit";
+        AppConnectionString = "server=.;database=hosers;uid=bozo;pwd=seekrit;";
     }
+
+    public string ApplicationName { get; set; }
+    public DebugModes DebugMode { get; set; }
+    public int MaxDisplayListItems { get; set; }
+    public bool SendAdminEmailConfirmations { get; set; }
+    public string Password { get; set; }
+    public string AppConnectionString { get; set; }
+        
+    /// <summary>
+    /// Override this method to create the custom default provider - in this case a database
+    /// provider with a few options. Config data can be passed in for connectionstring and table
+    /// </summary>
+    protected override IConfigurationProvider OnCreateDefaultProvider(string sectionName, object configData)
+    {
+        // default connect values
+        string connectionString =  "LocalDatabaseConnection";
+        string tableName = "ConfigurationData";
+
+        // ConfigData: new { ConnectionString = "...", Tablename = "..." }
+        if (configData != null)
+        {
+            dynamic data = configData;
+            connectionString = data.ConnectionString;
+            tableName = data.Tablename;                       
+        }
+
+        var provider = new SqlServerConfigurationProvider<DatabaseConfiguration>()
+        {
+            ConnectionString = connectionString,
+            Tablename = tableName,
+            ProviderName = "System.Data.SqlServerCe.4.0",
+            EncryptionKey = "ultra-seekrit",  // use a generated value here
+            PropertiesToEncrypt = "Password,AppConnectionString"
+            // UseBinarySerialization = true                     
+        };
+
+        return provider;
+    }    
+
+    /// <summary>
+    /// Optional - simplify Initialize() for database provider default
+    /// </summary>
+    public void Initialize(string connectionString, string tableName = null)
+    {
+        base.Initialize(configData: new { ConnectionString = connectionString, Tablename = tableName });
+    }
+}
+```
 
 You can override the OnCreateDefaultProfile() method and configure a provider, or the slightly
 higher level OnInitialize() which creates a provider and then reads the content. Either one allows
@@ -235,8 +247,10 @@ access each class individually. A single app can easily have multiple configurat
 classes to separate distinct sections or tasks within an application.
 Ideally you store the configuration objects on a global static instance like this:
 
-	App.Configuration = new MyApplicationConfiguration(null);
-	App.AdminConfiguration = new AdminConfiguration(null);
+```c#
+App.Configuration = new MyApplicationConfiguration(null);
+App.AdminConfiguration = new AdminConfiguration(null);
+```
 
 This allows for nice compartmentalization of configuration settings and
 also for multiple components/assemblies to have their own private 

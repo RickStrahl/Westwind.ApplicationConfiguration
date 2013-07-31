@@ -45,107 +45,26 @@ using System.Diagnostics;
 
 namespace Westwind.Utilities.Configuration
 {
+
     /// <summary>
-    /// This class provides a base class for strongly typed configuration settings.
-    ///  The component can read  and write configuration data from various 
-    /// configuration stores including .NET .config files, plain XML files, strings
-    ///  and SQL Server databases.
+    /// This class provides a base class for code-first, strongly typed configuration 
+    /// settings in .NET. It supports storing of configuration data in
+    /// .NET .config files, plain XML files, strings and SQL Server databases and
+    /// custom providers.
     /// 
-    /// This mechanism uses a class-first approach to configuration management 
-    /// where you declare your configuration settings as simple class properties on
-    ///   a subclass of this abstract class. On instantiation and calling 
-    /// Initialize() the class then automatically reads configuration information 
-    /// from the configuration store into the class' properties. If settings don't 
-    /// exist they are auto-created, permissions permitting. You can create 
-    /// multiple configuration objects. The advantage of  this class centric 
-    /// approach is that your configuration is not bound to any  particular 
-    /// environment - you can use the configuration in a Web, desktop, console or 
-    /// service application using the same mechanism.
+    /// Using this class is easy: Create a subclass of AppConfiguration and 
+    /// then simply add properties to the class. Then instantiate the class, 
+    /// call Initialize(), then simply access the class 
+    /// properties to read configuration values.
     /// 
-    /// Using this class is easy: Create a subclass of AppConfiguration and simply 
-    /// add properties - each property becomes a configuration setting that can be 
-    /// read and persisted in a the configuration store. The implementation will 
-    /// handle persistence transparently.
-    /// 
-    /// Storage is configured via a configuration provider that configures provider
-    ///   specific features. The configuration class then uses the provider to read
-    ///  and write data from the configuration store. The base providers also 
-    /// support encryption of individual fields. The default provider if none is 
-    /// specified uses .NET app.config or web.config configuration files with a 
-    /// custom section for the class name.
+    /// The default implementation uses standard .NET configuration files and a 
+    /// custom section within that file to hold configuration values. Other 
+    /// providers can be used to store data to different stores and you can create 
+    /// your own custom providers to store configuration data in yet other stores.
     /// <seealso>Managing Configuration Settings with AppConfiguration</seealso>
     /// </summary>
-    /// <example>
-    /// &lt;&lt;/pre&gt;&gt;
-    /// <code lang="C#">
-    /// // Configuration Class implementation
-    /// public class CustomConfigFileConfiguration : 
-    /// Westwind.Utilities.Configuration.AppConfiguration
-    /// {
-    ///     public string ApplicationName { get; set; }
-    ///     public DebugModes DebugMode { get; set; }
-    ///     public int MaxDisplayListItems { get; set; }
-    ///     public bool SendAdminEmailConfirmations { get; set; }
-    ///     public string Password { get; set; }
-    ///     public string AppConnectionString { get; set; }
-    /// 
-    ///     public CustomConfigFileConfiguration()
-    ///     {
-    ///         ApplicationName = &quot;Configuration Tests&quot;;
-    ///         DebugMode = DebugModes.Default;
-    ///         MaxDisplayListItems = 15;
-    ///         SendAdminEmailConfirmations = false;
-    ///         Password = &quot;seekrit&quot;;
-    ///         AppConnectionString = 
-    /// &quot;server=.;database=hosers;uid=bozo;pwd=seekrit;&quot;;
-    ///     }
-    /// 
-    ///     /// &lt;summary&gt;
-    ///     /// Override to provide a custom default provider (created when 
-    /// Initialize() is
-    ///     /// called with no parameters).
-    ///     /// &lt;/summary&gt;
-    ///     protected override IConfigurationProvider 
-    /// OnCreateDefaultProvider(string sectionName, object configData)
-    ///     {
-    ///         var provider = new 
-    /// ConfigurationFileConfigurationProvider&lt;CustomConfigFileConfiguration&gt;
-    /// ()
-    ///         {
-    ///             //ConfigurationFile = &quot;CustomConfiguration.config&quot;,
-    ///             ConfigurationSection = sectionName,
-    ///             EncryptionKey = &quot;ultra-seekrit&quot;,  // use a generated 
-    /// value here
-    ///             PropertiesToEncrypt = &quot;Password,AppConnectionString&quot;
-    ///         };
-    /// 
-    ///         return provider;
-    ///     }
-    /// }
-    /// </code>
-    /// <code lang="C#">
-    /// // Optional - Configuration Class Hookup as a static Property
-    /// public class App
-    /// {
-    ///     public static ApplicationConfiguration Configuration { get; set; }
-    /// 
-    ///     static App()
-    ///     {
-    ///         /// Load config properties from the Config file
-    ///         Configuration = new ApplicationConfiguration(null);
-    ///     }
-    /// }
-    /// </code>
-    /// <code lang="C#">
-    /// //Usage from anywhere in the Application
-    /// var title = App.Configuration.ApplicationTitle;
-    /// if (App.Configuration.DebugMode == DebugModes.Default)
-    ///    throw new ApplicationException(&quot;Boo&quot;);
-    /// </code>
-    /// </example>
     public abstract class AppConfiguration
     {
-
         /// <summary>
         /// An instance of a IConfigurationProvider that
         /// needs to be passed in via constructor or set
@@ -222,10 +141,10 @@ namespace Westwind.Utilities.Configuration
         /// If all you need is to create a default provider configuration
         /// use the OnCreateDefaultProvider() method to override instead.
         /// Use this method if you need to perform custom actions beyond
-        /// standard instantiation.
+        /// provider instantiation.
         /// </summary>
-        /// <param name="provider">Provider value - can be null</param>
-        /// <param name="sectionName">Sub Section name - can be null</param>
+        /// <param name="provider">Provider value - can be null in which case ConfigurationFileProvider is used</param>
+        /// <param name="sectionName">Sub Section name - can be null. Classname is used if null. Can be "appSettings" </param>
         /// <param name="configData">
         /// Any additional configuration data that can be used to
         /// configure the provider.
