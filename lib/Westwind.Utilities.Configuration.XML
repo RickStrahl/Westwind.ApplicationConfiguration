@@ -6,15 +6,15 @@
     <members>
         <member name="T:Westwind.Utilities.Configuration.AppConfiguration">
             <summary>
-            This class provides a base class for code-first, strongly typed configuration 
-            settings in .NET. It supports storing of configuration data in
-            .NET .config files, plain XML files, strings and SQL Server databases and
-            custom providers.
+            This class provides a base class for code-first, strongly typed 
+            configuration settings in .NET. It supports storing of configuration data 
+            in .NET .config files, plain XML files, strings and SQL Server databases 
+            and custom providers.
             
-            Using this class is easy: Create a subclass of AppConfiguration and 
-            then simply add properties to the class. Then instantiate the class, 
-            call Initialize(), then simply access the class 
-            properties to read configuration values.
+            Using this class is easy: Create a subclass of AppConfiguration and then 
+            simply add properties to the class. Then instantiate the class, call 
+            Initialize(), then simply access the class properties to read configuration
+             values.
             
             The default implementation uses standard .NET configuration files and a 
             custom section within that file to hold configuration values. Other 
@@ -43,16 +43,6 @@
             Internal flag that checks to see if Initialize was called
             if not - automatically calls it without parameters
             </summary>
-        </member>
-        <member name="M:Westwind.Utilities.Configuration.AppConfiguration.#ctor">
-            <summary>
-            Default constructor of this class SHOULD ALWAYS be implemented in
-            every subclass to allow serialization instantiation. Should be left empty.
-            
-            Typically subclass implementations should leave this blank
-            and implement the version that passes in a provider instance
-            or null (default provider).
-            </summary>         
         </member>
         <member name="M:Westwind.Utilities.Configuration.AppConfiguration.Initialize(Westwind.Utilities.Configuration.IConfigurationProvider,System.String,System.Object)">
             <summary>

@@ -32,30 +32,21 @@
 #endregion
 
 using System;
-
-using System.Collections.Specialized;
-using System.Configuration;
-using System.Reflection;
-using System.Xml;
-using System.Globalization;
-
-using System.Data.SqlClient;
 using System.Xml.Serialization;
-using System.Diagnostics;
 
 namespace Westwind.Utilities.Configuration
 {
 
     /// <summary>
-    /// This class provides a base class for code-first, strongly typed configuration 
-    /// settings in .NET. It supports storing of configuration data in
-    /// .NET .config files, plain XML files, strings and SQL Server databases and
-    /// custom providers.
+    /// This class provides a base class for code-first, strongly typed 
+    /// configuration settings in .NET. It supports storing of configuration data 
+    /// in .NET .config files, plain XML files, strings and SQL Server databases 
+    /// and custom providers.
     /// 
-    /// Using this class is easy: Create a subclass of AppConfiguration and 
-    /// then simply add properties to the class. Then instantiate the class, 
-    /// call Initialize(), then simply access the class 
-    /// properties to read configuration values.
+    /// Using this class is easy: Create a subclass of AppConfiguration and then 
+    /// simply add properties to the class. Then instantiate the class, call 
+    /// Initialize(), then simply access the class properties to read configuration
+    ///  values.
     /// 
     /// The default implementation uses standard .NET configuration files and a 
     /// custom section within that file to hold configuration values. Other 
@@ -91,17 +82,6 @@ namespace Westwind.Utilities.Configuration
         /// </summary>
         protected bool InitializeCalled = false;
         
-        /// <summary>
-        /// Default constructor of this class SHOULD ALWAYS be implemented in
-        /// every subclass to allow serialization instantiation. Should be left empty.
-        /// 
-        /// Typically subclass implementations should leave this blank
-        /// and implement the version that passes in a provider instance
-        /// or null (default provider).
-        /// </summary>         
-        public AppConfiguration()
-        { }
-
         /// <summary>
         /// This method initializes the configuration object with a provider
         /// and performs an initial read from the config store.    
