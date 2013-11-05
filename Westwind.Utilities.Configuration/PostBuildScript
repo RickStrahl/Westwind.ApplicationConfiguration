@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e          # crash on errors
+set -u          # crash on undefined variables
+set -o pipefail # crash when intermediate program in pipe fails
+
+# This script takes arguments in this form: variable="some value". Evaluate
+# those variables so they can be referenced in this script.
+while (( "$#" )); do
+  # Replace all backslashes in variable with forward slashes
+  # ${VARIABLE // MATCH / REPLACE }
+  #            ^--> replace all
+  eval ${1//\\/\/}
+  shift
+done
+
+cp -f $TargetPath               ../../../lib
+cp -f $TargetDir$TargetName.XML ../../../lib
