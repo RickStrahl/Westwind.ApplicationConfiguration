@@ -357,7 +357,7 @@ namespace Westwind.Utilities.Data
                 Command.Parameters.Add(parameter);  
             }
 
-            DataTable dt = new DataTable(Tablename);
+            /* DataTable dt = */ new DataTable(Tablename);
 
             if (dataSet.Tables.Contains(Tablename))
                 dataSet.Tables.Remove(Tablename);

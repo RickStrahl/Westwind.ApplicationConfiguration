@@ -131,7 +131,7 @@ namespace Westwind.Utilities.Configuration
             // Loop through all fields and properties                 
             foreach (MemberInfo Member in Fields)
             {
-                string typeName = null;
+                //string typeName = null;
 
                 FieldInfo field = null;
                 PropertyInfo property = null;
@@ -141,13 +141,13 @@ namespace Westwind.Utilities.Configuration
                 {
                     field = (FieldInfo)Member;
                     fieldType = field.FieldType;
-                    typeName = fieldType.Name.ToLower();
+                    //typeName = fieldType.Name.ToLower();
                 }
                 else if (Member.MemberType == MemberTypes.Property)
                 {
                     property = (PropertyInfo)Member;
                     fieldType = property.PropertyType;
-                    typeName = fieldType.Name.ToLower();
+                    //typeName = fieldType.Name.ToLower();
                 }
                 else
                     continue;
@@ -248,19 +248,19 @@ namespace Westwind.Utilities.Configuration
                 FieldInfo Field = null;
                 PropertyInfo Property = null;
                 Type FieldType = null;
-                string TypeName = null;
+                //string TypeName = null;
 
                 if (Member.MemberType == MemberTypes.Field)
                 {
                     Field = (FieldInfo)Member;
                     FieldType = Field.FieldType;
-                    TypeName = Field.FieldType.Name.ToLower();
+                    //TypeName = Field.FieldType.Name.ToLower();
                 }
                 else if (Member.MemberType == MemberTypes.Property)
                 {
                     Property = (PropertyInfo)Member;
                     FieldType = Property.PropertyType;
-                    TypeName = Property.PropertyType.Name.ToLower();
+                    //TypeName = Property.PropertyType.Name.ToLower();
                 }
                 else
                     continue;

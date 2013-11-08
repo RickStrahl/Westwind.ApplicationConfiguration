@@ -233,7 +233,7 @@ namespace Westwind.Utilities
         /// <returns></returns>
         public static object GetPropertyEx(object Parent, string Property)
         {
-            Type type = Parent.GetType();
+            //Type type = Parent.GetType();
 
             int at = Property.IndexOf(".");
             if (at < 0)
@@ -263,7 +263,7 @@ namespace Westwind.Utilities
         /// <returns></returns>
         public static PropertyInfo GetPropertyInfoEx(object Parent, string Property)
         {
-            Type type = Parent.GetType();
+            //Type type = Parent.GetType();
 
             int at = Property.IndexOf(".");
             if (at < 0)
@@ -345,7 +345,7 @@ namespace Westwind.Utilities
         /// </param>
         public static object SetPropertyEx(object parent, string property, object value)
         {
-            Type Type = parent.GetType();
+            //Type Type = parent.GetType();
 
             // no more .s - we got our final object
             int lnAt = property.IndexOf(".");
@@ -433,7 +433,7 @@ namespace Westwind.Utilities
         /// <returns></returns>
         public static object CallMethodEx(object parent, string method, params object[] parms)
         {
-            Type Type = parent.GetType();
+            //Type Type = parent.GetType();
 
             // no more .s - we got our final object
             int lnAt = method.IndexOf(".");
@@ -881,7 +881,7 @@ namespace Westwind.Utilities
         public static object GetPropertyExCom(object parent, string property)
         {
 
-            Type Type = parent.GetType();
+            //Type Type = parent.GetType();
 
             int lnAt = property.IndexOf(".");
             if (lnAt < 0)
@@ -937,7 +937,7 @@ namespace Westwind.Utilities
         /// </param>
         public static object SetPropertyExCom(object parent, string property, object value)
         {
-            Type Type = parent.GetType();
+            //Type Type = parent.GetType();
 
             int lnAt = property.IndexOf(".");
             if (lnAt < 0)
@@ -982,7 +982,7 @@ namespace Westwind.Utilities
         /// <returns></returns>
         public static object CallMethodExCom(object parent, string method, params object[] parms)
         {
-            Type Type = parent.GetType();
+            //Type Type = parent.GetType();
 
             // no more .s - we got our final object
             int at = method.IndexOf(".");

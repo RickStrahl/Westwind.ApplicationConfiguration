@@ -21,6 +21,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\Westwind.Utilities.Configuration.XML</DocumentationFile>
+    <NoWarn>1570 1572 1573 1574 1587 1591 1711</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,6 +32,7 @@
     <WarningLevel>4</WarningLevel>
     <RegisterForComInterop>false</RegisterForComInterop>
     <DocumentationFile>bin\Release\Westwind.Utilities.Configuration.XML</DocumentationFile>
+    <NoWarn>1570 1572 1573 1574 1587 1591 1711</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
