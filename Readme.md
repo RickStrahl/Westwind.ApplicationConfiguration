@@ -41,6 +41,7 @@ here:
 * [Main Product Page](http://west-wind.com/westwind.applicationconfiguration)
 * [Get it from NuGet](http://nuget.org/packages/Westwind.Utilities.Configuration)
 * [Building a better .NET Application Configuration Class - Blog Entry](http://www.west-wind.com/weblog/posts/2012/Dec/28/Building-a-better-NET-Application-Configuration-Class-revisited)
+* [Change Log](Changelog.md)
 * [Westwind.ApplicationConfiguration Documentation](http://west-wind.com/westwind.applicationconfiguration/docs)
 * [Westwind.ApplicationConfiguration Class Reference](http://west-wind.com/westwind.applicationconfiguration/docs?page=_3lf07k2cg.htm)
 * [Support Forum](http://west-wind.com/wwThreads/default.asp?forum=West+Wind+Application+Configuration)
