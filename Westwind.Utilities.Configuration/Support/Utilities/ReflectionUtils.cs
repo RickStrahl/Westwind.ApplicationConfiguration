@@ -517,19 +517,21 @@ namespace Westwind.Utilities
         {
             Type type = null;
 
+            // Let default name binding find it
             type = Type.GetType(typeName, false);
             if (type != null)
                 return type;
 
+            // look through assembly list
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            
             // try to find manually
-            foreach (Assembly ass in assemblies)
+            foreach (Assembly asm in assemblies)
             {
-                type = ass.GetType(typeName, false);
+                type = asm.GetType(typeName, false);
 
                 if (type != null)
                     break;
-
             }
             return type;
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -11,24 +12,23 @@ namespace Westwind.Utilities.Configuration.Tests.SupportClasses
     {
         [TestMethod]
         public void JsonStringSerializeTest()
-        {                        
+        {
             var config = new AutoConfigFileConfiguration();
-            
-            string json = JsonSerializationUtils.Serialize(config,true,true);
+
+            string json = JsonSerializationUtils.Serialize(config, true, true);
 
             Console.WriteLine(json);
             Assert.IsNotNull(json);
-
         }
 
         [TestMethod]
         public void JsonSerializeToFile()
         {
             var config = new AutoConfigFileConfiguration();
-            
-            bool result = JsonSerializationUtils.SerializeToFile(config,"serialized.config",true,true);
+
+            bool result = JsonSerializationUtils.SerializeToFile(config, "serialized.config", true, true);
             string filetext = File.ReadAllText("serialized.config");
-            Console.WriteLine(filetext);                                    
+            Console.WriteLine(filetext);
         }
 
 
@@ -42,7 +42,7 @@ namespace Westwind.Utilities.Configuration.Tests.SupportClasses
 
             config = null;
 
-            config = JsonSerializationUtils.Deserialize(json, typeof (AutoConfigFileConfiguration),true) as AutoConfigFileConfiguration;
+            config = JsonSerializationUtils.Deserialize(json, typeof(AutoConfigFileConfiguration), true) as AutoConfigFileConfiguration;
 
             Assert.IsNotNull(config);
             Assert.IsTrue(config.ApplicationName == "New App");
@@ -55,16 +55,16 @@ namespace Westwind.Utilities.Configuration.Tests.SupportClasses
         {
             string fname = "serialized.config";
 
-            var config = new AutoConfigFileConfiguration();            
+            var config = new AutoConfigFileConfiguration();
             config.ApplicationName = "New App";
             config.DebugMode = DebugModes.DeveloperErrorMessage;
-            bool result = JsonSerializationUtils.SerializeToFile(config,fname,true,true);
+            bool result = JsonSerializationUtils.SerializeToFile(config, fname, true, true);
 
             Assert.IsTrue(result);
 
             config = null;
 
-            config = JsonSerializationUtils.DeserializeFromFile(fname, typeof (AutoConfigFileConfiguration)) as
+            config = JsonSerializationUtils.DeserializeFromFile(fname, typeof(AutoConfigFileConfiguration)) as
                 AutoConfigFileConfiguration;
 
             Assert.IsNotNull(config);
@@ -77,13 +77,13 @@ namespace Westwind.Utilities.Configuration.Tests.SupportClasses
         {
             // Try to create instance
             var ser = new JsonSerializer();
-            
+
             //ser.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
             //ser.ObjectCreationHandling = ObjectCreationHandling.Auto;
             //ser.MissingMemberHandling = MissingMemberHandling.Ignore;
             ser.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-            ser.Converters.Add(new  StringEnumConverter());
-            
+            ser.Converters.Add(new StringEnumConverter());
+
             var config = new AutoConfigFileConfiguration();
             config.ApplicationName = "New App";
             config.DebugMode = DebugModes.DeveloperErrorMessage;
@@ -95,10 +95,9 @@ namespace Westwind.Utilities.Configuration.Tests.SupportClasses
             ser.Serialize(jtw, config);
 
             string result = writer.ToString();
-            jtw.Close();            
+            jtw.Close();
 
             Console.WriteLine(result);
-
 
             dynamic json = ReflectionUtils.CreateInstanceFromString("Newtonsoft.Json.JsonSerializer");
             dynamic enumConverter = ReflectionUtils.CreateInstanceFromString("Newtonsoft.Json.Converters.StringEnumConverter");
@@ -114,7 +113,82 @@ namespace Westwind.Utilities.Configuration.Tests.SupportClasses
             jtw.Close();
 
             Console.WriteLine(result);
+        }
 
+        [TestMethod]
+        public void NativePerfTest()
+        {
+            // Try to create instance
+            var ser = new JsonSerializer();
+            ser.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            ser.Converters.Add(new StringEnumConverter());
+
+            var config = new AutoConfigFileConfiguration();
+            config.ApplicationName = "New App";
+            config.DebugMode = DebugModes.DeveloperErrorMessage;
+
+            string result = null;
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            for (int i = 0; i < 10000; i++)
+            {
+                var writer = new StringWriter();
+                var jtw = new JsonTextWriter(writer);
+                jtw.Formatting = Formatting.Indented;
+                ser.Serialize(jtw, config);
+                result = writer.ToString();
+                jtw.Close();
+            }
+
+            sw.Stop();
+            Console.WriteLine("Native Serialize: " + sw.ElapsedMilliseconds + "ms");
+            Console.WriteLine(result);
+        }
+        [TestMethod]
+        public void Native2PerfTest()
+        {
+            var config = new AutoConfigFileConfiguration();
+            config.ApplicationName = "New App";
+            config.DebugMode = DebugModes.DeveloperErrorMessage;
+
+            string result = JsonSerializationUtils2.Serialize(config, true, true);
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            for (int i = 0; i < 10000; i++)
+            {
+                result = JsonSerializationUtils2.Serialize(config, true, true);
+            }
+
+            sw.Stop();
+            Console.WriteLine("Utils Serialize: " + sw.ElapsedMilliseconds + "ms");
+            Console.WriteLine(result);
+        }
+
+        [TestMethod]
+        public void UtilsPerfTest()
+        {
+            var config = new AutoConfigFileConfiguration();
+            config.ApplicationName = "New App";
+            config.DebugMode = DebugModes.DeveloperErrorMessage;
+
+            string result = JsonSerializationUtils.Serialize(config, true, true);
+            result = JsonSerializationUtils.Serialize(config, true, true);
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            for (int i = 0; i < 10000; i++)
+            {
+                result = JsonSerializationUtils.Serialize(config, true, true);
+            }
+
+            sw.Stop();
+            Console.WriteLine("Utils Serialize: " + sw.ElapsedMilliseconds + "ms");
+            Console.WriteLine(result);
         }
 
     }

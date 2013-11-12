@@ -8,7 +8,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Westwind.Utilities.Configuration.Tests</RootNamespace>
     <AssemblyName>Westwind.Utilities.Configuration.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -40,8 +40,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\GeoCrumbs\packages\Newtonsoft.Json.5.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -70,6 +69,7 @@
     <Compile Include="ConfigurationClasses\StringConfigFileConfiguration.cs" />
     <Compile Include="ConfigurationClasses\CustomConfigFileConfiguration.cs" />
     <Compile Include="DatabaseConfigurationTests.cs" />
+    <Compile Include="SupportClasses\JsonSerializationUtils2.cs" />
     <Compile Include="MyCustomConfigurationSection.cs" />
     <Compile Include="SupportClasses\DebugModes.cs" />
     <Compile Include="AutoConfigFileConfigurationTests.cs" />

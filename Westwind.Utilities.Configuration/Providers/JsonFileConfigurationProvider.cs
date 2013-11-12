@@ -41,7 +41,7 @@ namespace Westwind.Utilities.Configuration
     /// applied to.
     /// </summary>
     public class JsonFileConfigurationProvider<TAppConfiguration> : ConfigurationProviderBase<TAppConfiguration>
-        where TAppConfiguration: AppConfiguration, new()
+        where TAppConfiguration : AppConfiguration, new()
     {
 
         /// <summary>
@@ -56,20 +56,20 @@ namespace Westwind.Utilities.Configuration
         }
         private string _JsonConfigurationFile = string.Empty;
 
-       
-       
+
+
         public override bool Read(AppConfiguration config)
         {
-            var newConfig = JsonSerializationUtils.DeserializeFromFile(JsonConfigurationFile,typeof(TAppConfiguration)) as TAppConfiguration;
+            var newConfig = JsonSerializationUtils.DeserializeFromFile(JsonConfigurationFile, typeof(TAppConfiguration)) as TAppConfiguration;
             if (newConfig == null)
             {
-                if(Write(config))
+                if (Write(config))
                     return true;
                 return false;
             }
             DecryptFields(newConfig);
             DataUtils.CopyObjectData(newConfig, config, "Provider,ErrorMessage");
-            
+
             return true;
         }
 
@@ -80,13 +80,13 @@ namespace Westwind.Utilities.Configuration
         /// <returns></returns>
         public override TAppConfig Read<TAppConfig>()
         {
-            var result = JsonSerializationUtils.DeserializeFromFile(JsonConfigurationFile,typeof(TAppConfig)) as TAppConfig;
+            var result = JsonSerializationUtils.DeserializeFromFile(JsonConfigurationFile, typeof(TAppConfig)) as TAppConfig;
             if (result != null)
                 DecryptFields(result);
 
             return result;
         }
-    
+
         /// <summary>
         /// Write configuration to XmlConfigurationFile location
         /// </summary>
@@ -96,13 +96,13 @@ namespace Westwind.Utilities.Configuration
         {
             EncryptFields(config);
 
-            bool result = JsonSerializationUtils.SerializeToFile(config, JsonConfigurationFile,false,true);
+            bool result = JsonSerializationUtils.SerializeToFile(config, JsonConfigurationFile, false, true);
 
             // Have to decrypt again to make sure the properties are readable afterwards
             DecryptFields(config);
 
             return result;
- 	    }
+        }
     }
 
 }

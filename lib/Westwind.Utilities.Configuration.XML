@@ -1716,12 +1716,13 @@
         </member>
         <member name="M:Westwind.Utilities.JsonSerializationUtils.SerializeToFile(System.Object,System.String,System.Boolean,System.Boolean)">
             <summary>
-            Serializes an object instance to a file.
+            Serializes an object instance to a JSON file.
             </summary>
-            <param name="instance">the object instance to serialize</param>
-            <param name="fileName"></param>
-            <param name="binarySerialization">determines whether XML serialization or binary serialization is used</param>
-            <returns></returns>
+            <param name="value">the value to serialize</param>
+            <param name="fileName">Full path to the file to write out with JSON.</param>
+            <param name="throwExceptions">Determines whether exceptions are thrown or false is returned</param>
+            <param name="formatJsonOutput">if true pretty-formats the JSON with line breaks</param>
+            <returns>true or false</returns>        
         </member>
         <member name="M:Westwind.Utilities.JsonSerializationUtils.DeserializeFromFile(System.String,System.Type,System.Boolean)">
             <summary>

@@ -33,6 +33,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Diagnostics;
 
@@ -54,6 +55,10 @@ namespace Westwind.Utilities
     {
         static dynamic JsonNet = null;
         static object SyncLock = new Object();
+        static Type FormattingType = null;
+        private static Type JsonTextReaderType = null;
+        private static Type JsonTextWriterType = null;
+
 
         /// <summary>
         /// Serializes an object to an XML string. Unlike the other SerializeObject overloads
@@ -79,14 +84,10 @@ namespace Westwind.Utilities
 
                 StringWriter sw = new StringWriter();
 
-                writer = ReflectionUtils.CreateInstanceFromString("Newtonsoft.Json.JsonTextWriter", sw);
+                writer = Activator.CreateInstance(JsonTextWriterType, sw);
 
                 if (formatJsonOutput)
-                    writer.Formatting =
-                        (dynamic) ReflectionUtils.GetStaticProperty("Newtonsoft.Json.Formatting", "Indented");
-                else
-                    writer.Formatting =
-                        (dynamic) ReflectionUtils.GetStaticProperty("Newtonsoft.Json.Formatting", "None");
+                    writer.Formatting = (dynamic)Enum.Parse(FormattingType, "Indented");
 
                 writer.QuoteChar = '"';
                 json.Serialize(writer, value);
@@ -99,7 +100,7 @@ namespace Westwind.Utilities
                 if (throwExceptions)
                     throw ex;
 
-                jsonResult = null;                
+                jsonResult = null;
             }
             finally
             {
@@ -111,12 +112,13 @@ namespace Westwind.Utilities
         }
 
         /// <summary>
-        /// Serializes an object instance to a file.
+        /// Serializes an object instance to a JSON file.
         /// </summary>
-        /// <param name="instance">the object instance to serialize</param>
-        /// <param name="fileName"></param>
-        /// <param name="binarySerialization">determines whether XML serialization or binary serialization is used</param>
-        /// <returns></returns>
+        /// <param name="value">the value to serialize</param>
+        /// <param name="fileName">Full path to the file to write out with JSON.</param>
+        /// <param name="throwExceptions">Determines whether exceptions are thrown or false is returned</param>
+        /// <param name="formatJsonOutput">if true pretty-formats the JSON with line breaks</param>
+        /// <returns>true or false</returns>        
         public static bool SerializeToFile(object value, string fileName, bool throwExceptions = false, bool formatJsonOutput = false)
         {
             dynamic writer = null;
@@ -125,22 +127,16 @@ namespace Westwind.Utilities
             {
                 Type type = value.GetType();
 
-                dynamic json = CreateJsonNet(throwExceptions);
+                var json = CreateJsonNet(throwExceptions);
                 if (json == null)
                     return false;
-                
+
                 fs = new FileStream(fileName, FileMode.Create);
                 var sw = new StreamWriter(fs, Encoding.UTF8);
 
-                //JsonTextWriter writer = new JsonTextWriter(sw);
-                writer = ReflectionUtils.CreateInstanceFromString("Newtonsoft.Json.JsonTextWriter", sw);
-
+                writer = Activator.CreateInstance(JsonTextWriterType, sw);
                 if (formatJsonOutput)
-                    writer.Formatting =
-                        (dynamic)ReflectionUtils.GetStaticProperty("Newtonsoft.Json.Formatting", "Indented");
-                else
-                    writer.Formatting =
-                        (dynamic)ReflectionUtils.GetStaticProperty("Newtonsoft.Json.Formatting", "None");
+                    writer.Formatting = (dynamic)Enum.Parse(FormattingType, "Indented");
 
                 writer.QuoteChar = '"';
                 json.Serialize(writer, value);
@@ -148,6 +144,8 @@ namespace Westwind.Utilities
             catch (Exception ex)
             {
                 Debug.WriteLine("JsonSerializer Serialize error: " + ex.Message);
+                if (throwExceptions)
+                    throw;
                 return false;
             }
             finally
@@ -173,7 +171,7 @@ namespace Westwind.Utilities
             try
             {
                 StringReader sr = new StringReader(jsonText);
-                reader = ReflectionUtils.CreateInstanceFromString("Newtonsoft.Json.JsonTextReader", sr);
+                reader = Activator.CreateInstance(JsonTextReaderType, sr);
                 result = json.Deserialize(reader, type);
                 reader.Close();
             }
@@ -193,7 +191,7 @@ namespace Westwind.Utilities
 
             return result;
         }
-        
+
 
         /// <summary>
         /// Deserializes an object from file and returns a reference.
@@ -212,12 +210,12 @@ namespace Westwind.Utilities
             object result = null;
             dynamic reader = null;
             FileStream fs = null;
-             
+
             try
             {
                 fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-                var sr = new StreamReader(fs,Encoding.UTF8);
-                reader = ReflectionUtils.CreateInstanceFromString("Newtonsoft.Json.JsonTextReader", sr);
+                var sr = new StreamReader(fs, Encoding.UTF8);
+                reader = Activator.CreateInstance(JsonTextReaderType, sr);
                 result = json.Deserialize(reader, objectType);
                 reader.Close();
             }
@@ -277,8 +275,11 @@ namespace Westwind.Utilities
                 if (json == null)
                     return null;
 
+                FormattingType = ReflectionUtils.GetTypeFromName("Newtonsoft.Json.Formatting");
+                JsonTextReaderType = ReflectionUtils.GetTypeFromName("Newtonsoft.Json.JsonTextReader");
+                JsonTextWriterType = ReflectionUtils.GetTypeFromName("Newtonsoft.Json.JsonTextWriter");
                 json.ReferenceLoopHandling =
-                    (dynamic) ReflectionUtils.GetStaticProperty("Newtonsoft.Json.ReferenceLoopHandling", "Ignore");
+                    (dynamic)ReflectionUtils.GetStaticProperty("Newtonsoft.Json.ReferenceLoopHandling", "Ignore");
 
                 // Enums as strings in JSON
                 dynamic enumConverter = ReflectionUtils.CreateInstanceFromString("Newtonsoft.Json.Converters.StringEnumConverter");

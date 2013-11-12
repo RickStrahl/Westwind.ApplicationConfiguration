@@ -48,7 +48,7 @@ namespace Westwind.Utilities.Configuration.Tests
             {
                 JsonConfigurationFile = jsonFile,
                 EncryptionKey = "ultra-seekrit",  // use a generated value here
-                PropertiesToEncrypt = "Password,AppConnectionString"                            
+                PropertiesToEncrypt = "Password,AppConnectionString"
             };
 
             return provider;
