@@ -69,11 +69,9 @@
     <Compile Include="ConfigurationClasses\StringConfigFileConfiguration.cs" />
     <Compile Include="ConfigurationClasses\CustomConfigFileConfiguration.cs" />
     <Compile Include="DatabaseConfigurationTests.cs" />
-    <Compile Include="SupportClasses\JsonSerializationUtils2.cs" />
     <Compile Include="MyCustomConfigurationSection.cs" />
     <Compile Include="SupportClasses\DebugModes.cs" />
     <Compile Include="AutoConfigFileConfigurationTests.cs" />
-    <Compile Include="SupportClasses\JsonNetSerializationUtilsTests.cs" />
     <Compile Include="JsonFileConfigurationTests.cs" />
     <Compile Include="XmlFileConfigurationTests.cs" />
     <Compile Include="CustomConfigFileConfigurationTests.cs" />
@@ -97,9 +95,6 @@
     <None Include="Westwind.Utilities.Configuration.Tests.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

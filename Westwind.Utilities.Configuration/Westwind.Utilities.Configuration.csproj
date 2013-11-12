@@ -57,8 +57,8 @@
     <Compile Include="Support\Data\DataAccessBase.cs" />
     <Compile Include="Support\Data\SqlDataAccess.cs" />
     <Compile Include="Support\Utilities\Encryption.cs" />
-    <Compile Include="Support\Utilities\ReflectionUtils.cs" />
     <Compile Include="Support\Utilities\JsonSerializationUtils.cs" />
+    <Compile Include="Support\Utilities\ReflectionUtils.cs" />
     <Compile Include="Support\Utilities\SerializationUtils.cs" />
     <Compile Include="Support\Utilities\StringUtils.cs" />
     <Compile Include="Providers\JsonFileConfigurationProvider.cs" />

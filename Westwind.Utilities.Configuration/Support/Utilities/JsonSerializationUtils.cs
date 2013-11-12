@@ -33,7 +33,6 @@
 
 using System;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Diagnostics;
 
@@ -51,13 +50,13 @@ namespace Westwind.Utilities
     /// project includes a reference to JSON.NET when using this
     /// class.
     /// </remarks>
-    public static class JsonSerializationUtils
+    internal static class JsonSerializationUtils
     {
         static dynamic JsonNet = null;
         static object SyncLock = new Object();
         static Type FormattingType = null;
-        private static Type JsonTextReaderType = null;
-        private static Type JsonTextWriterType = null;
+        static Type JsonTextReaderType = null;
+        static Type JsonTextWriterType = null;
 
 
         /// <summary>
