@@ -1556,7 +1556,7 @@
             <param name="progId"></param>
             <returns></returns>
         </member>
-        <member name="M:Westwind.Utilities.ReflectionUtils.TypedValueToString(System.Object,System.Globalization.CultureInfo)">
+        <member name="M:Westwind.Utilities.ReflectionUtils.TypedValueToString(System.Object,System.Globalization.CultureInfo,System.String)">
             <summary>
             Converts a type to string if possible. This method supports an optional culture generically on any value.
             It calls the ToString() method on common types and uses a type converter on all other objects
@@ -1564,16 +1564,7 @@
             </summary>
             <param name="rawValue">The Value or Object to convert to a string</param>
             <param name="culture">Culture for numeric and DateTime values</param>
-            <returns>string</returns>
-        </member>
-        <member name="M:Westwind.Utilities.ReflectionUtils.TypedValueToString(System.Object)">
-            <summary>
-            Converts a type to string if possible. This method uses the current culture for numeric and DateTime values.
-            It calls the ToString() method on common types and uses a type converter on all other objects
-            if available.
-            </summary>
-            <param name="rawValue">The Value or Object to convert to a string</param>
-            <param name="Culture">Culture for numeric and DateTime values</param>
+            <param name="unsupportedReturn">Return string for unsupported types</param>
             <returns>string</returns>
         </member>
         <member name="M:Westwind.Utilities.ReflectionUtils.StringToTypedValue(System.String,System.Type,System.Globalization.CultureInfo)">
@@ -1598,25 +1589,6 @@
             </param>
             <returns>object. Throws exception if it cannot be converted.</returns>
         </member>
-        <member name="M:Westwind.Utilities.ReflectionUtils.StringToTypedValue(System.String,System.Type)">
-            <summary>
-            Turns a string into a typed value generically.
-            Explicitly assigns common types and falls back
-            on using type converters for unhandled types.         
-            
-            Common uses: 
-            * UI -&gt; to data conversions
-            * Parsers
-            <seealso>Class ReflectionUtils</seealso>
-            </summary>
-            <param name="sourceString">
-            The string to convert from
-            </param>
-            <param name="targetType">
-            The type to convert to
-            </param>
-            <returns>object. Throws exception if it cannot be converted.</returns>
-        </member>
         <member name="M:Westwind.Utilities.ReflectionUtils.StringToTypedValue``1(System.String,System.Globalization.CultureInfo)">
             <summary>
             Generic version allow for automatic type conversion without the explicit type
@@ -1625,15 +1597,6 @@
             <typeparam name="T">Type to be converted to</typeparam>
             <param name="sourceString">input string value to be converted</param>
             <param name="culture">Culture applied to conversion</param>
-            <returns></returns>
-        </member>
-        <member name="M:Westwind.Utilities.ReflectionUtils.StringToTypedValue``1(System.String)">
-            <summary>
-            Generic version allow for automatic type conversion without the explicit type
-            parameter. Defaults conversion to CurrentCulture.
-            </summary>
-            <typeparam name="T">Type to be converted to</typeparam>
-            <param name="sourceString">input string value to be converted</param>
             <returns></returns>
         </member>
         <member name="M:Westwind.Utilities.ReflectionUtils.GetEnumList(System.Type,System.Boolean)">
@@ -1722,6 +1685,60 @@
             <param name="method">The method or . syntax path to the method (Address.Parse)</param>
             <param name="parms">Any number of parameters</param>
             <returns></returns>
+        </member>
+        <member name="T:Westwind.Utilities.JsonSerializationUtils">
+            <summary>
+            JSON Serialization helper class that uses JSON.NET.
+            This class serializes JSON to and from string and 
+            files on disk.
+            </summary>
+            <remarks>
+            JSON.NET is loaded dynamically at runtime to avoid hard 
+            linking the Newtonsoft.Json dll. Make sure that your
+            project includes a reference to JSON.NET when using this
+            class.
+            </remarks>
+        </member>
+        <member name="M:Westwind.Utilities.JsonSerializationUtils.Serialize(System.Object,System.Boolean,System.Boolean)">
+            <summary>
+            Serializes an object to an XML string. Unlike the other SerializeObject overloads
+            this methods *returns a string* rather than a bool result!
+            </summary>
+            <param name="value">Value to serialize</param>
+            <param name="throwExceptions">Determines if a failure throws or returns null</param>
+            <returns>
+            null on error otherwise the Xml String.         
+            </returns>
+            <remarks>
+            If null is passed in null is also returned so you might want
+            to check for null before calling this method.
+            </remarks>
+        </member>
+        <member name="M:Westwind.Utilities.JsonSerializationUtils.SerializeToFile(System.Object,System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Serializes an object instance to a file.
+            </summary>
+            <param name="instance">the object instance to serialize</param>
+            <param name="fileName"></param>
+            <param name="binarySerialization">determines whether XML serialization or binary serialization is used</param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.JsonSerializationUtils.DeserializeFromFile(System.String,System.Type,System.Boolean)">
+            <summary>
+            Deserializes an object from file and returns a reference.
+            </summary>
+            <param name="fileName">name of the file to serialize to</param>
+            <param name="objectType">The Type of the object. Use typeof(yourobject class)</param>
+            <param name="binarySerialization">determines whether we use Xml or Binary serialization</param>
+            <param name="throwExceptions">determines whether failure will throw rather than return null on failure</param>
+            <returns>Instance of the deserialized object or null. Must be cast to your object type</returns>
+        </member>
+        <member name="M:Westwind.Utilities.JsonSerializationUtils.CreateJsonNet(System.Boolean)">
+            <summary>
+            Dynamically creates an instance of JSON.NET
+            </summary>
+            <param name="throwExceptions">If true throws exceptions otherwise returns null</param>
+            <returns>Dynamic JsonSerializer instance</returns>
         </member>
         <member name="M:Westwind.Utilities.SerializationUtils.SerializeObject(System.Object,System.String,System.Boolean)">
             <summary>
@@ -2170,6 +2187,35 @@
             </summary>
             <param name="input"></param>
             <returns></returns>
+        </member>
+        <member name="T:Westwind.Utilities.Configuration.JsonFileConfigurationProvider`1">
+            <summary>
+            Reads and Writes configuration settings in .NET config files and 
+            sections. Allows reading and writing to default or external files 
+            and specification of the configuration section that settings are
+            applied to.
+            </summary>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.JsonFileConfigurationProvider`1.Read``1">
+            <summary>
+            Return 
+            </summary>
+            <typeparam name="TAppConfig"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Utilities.Configuration.JsonFileConfigurationProvider`1.Write(Westwind.Utilities.Configuration.AppConfiguration)">
+            <summary>
+            Write configuration to XmlConfigurationFile location
+            </summary>
+            <param name="config"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Westwind.Utilities.Configuration.JsonFileConfigurationProvider`1.JsonConfigurationFile">
+            <summary>
+            Optional - the Configuration file where configuration settings are
+            stored in. If not specified uses the default Configuration Manager
+            and its default store.
+            </summary>
         </member>
         <member name="T:Westwind.Utilities.Configuration.XmlFileConfigurationProvider`1">
             <summary>

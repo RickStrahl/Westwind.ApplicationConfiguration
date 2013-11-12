@@ -42,25 +42,27 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfiguration.cs" />
-    <Compile Include="ConfigurationFileConfigurationProvider.cs" />
-    <Compile Include="ConfigurationProviderBase.cs" />
-    <Compile Include="IConfigurationProvider.cs" />
+    <Compile Include="Providers\ConfigurationFileConfigurationProvider.cs" />
+    <Compile Include="Providers\ConfigurationProviderBase.cs" />
+    <Compile Include="Providers\IConfigurationProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SqlServerConfigurationProvider.cs" />
-    <Compile Include="StringConfigurationProvider.cs" />
+    <Compile Include="Providers\SqlServerConfigurationProvider.cs" />
+    <Compile Include="Providers\StringConfigurationProvider.cs" />
     <Compile Include="Support\Data\DataUtils.cs" />
     <Compile Include="Support\Data\DataAccessBase.cs" />
     <Compile Include="Support\Data\SqlDataAccess.cs" />
     <Compile Include="Support\Utilities\Encryption.cs" />
     <Compile Include="Support\Utilities\ReflectionUtils.cs" />
+    <Compile Include="Support\Utilities\JsonSerializationUtils.cs" />
     <Compile Include="Support\Utilities\SerializationUtils.cs" />
     <Compile Include="Support\Utilities\StringUtils.cs" />
-    <Compile Include="XmlFileConfigurationProvider.cs" />
+    <Compile Include="Providers\JsonFileConfigurationProvider.cs" />
+    <Compile Include="Providers\XmlFileConfigurationProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="AppConfiguration.cd" />
