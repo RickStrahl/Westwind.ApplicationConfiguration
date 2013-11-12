@@ -315,7 +315,6 @@ namespace Westwind.Utilities
         /// <returns></returns>
         public static byte[] GZipMemory(string Filename, bool IsFile)
         {
-            string InputFile = Filename;
             byte[] Buffer = File.ReadAllBytes(Filename);
             return GZipMemory(Buffer);
         }
@@ -329,7 +328,6 @@ namespace Westwind.Utilities
         /// <returns></returns>
         public static bool GZipFile(string Filename, string OutputFile)
         {
-            string InputFile = Filename;
             byte[] Buffer = File.ReadAllBytes(Filename);
             FileStream fs = new FileStream(OutputFile, FileMode.OpenOrCreate, FileAccess.Write);
             GZipStream GZip = new GZipStream(fs, CompressionMode.Compress);

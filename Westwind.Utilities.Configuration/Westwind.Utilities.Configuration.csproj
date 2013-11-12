@@ -21,6 +21,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\Westwind.Utilities.Configuration.XML</DocumentationFile>
+    <NoWarn>1570 1572 1573 1574 1587 1591 1711</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,6 +32,7 @@
     <WarningLevel>4</WarningLevel>
     <RegisterForComInterop>false</RegisterForComInterop>
     <DocumentationFile>bin\Release\Westwind.Utilities.Configuration.XML</DocumentationFile>
+    <NoWarn>1570 1572 1573 1574 1587 1591 1711</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -73,8 +75,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(TargetPath) ..\..\..\lib
-copy $(TargetDir)$(TargetName).xml ..\..\..\lib</PostBuildEvent>
+    <PostBuildEvent>$(ProjectDir)PostBuildScript TargetPath="$(TargetPath)" TargetDir="$(TargetDir)" TargetName="$(TargetName)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
