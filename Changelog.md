@@ -1,5 +1,15 @@
 #West Wind Application Configuration Change Log
-------------------------------------------------
+
+
+##Version 2.15
+*Not released yet*
+
+* **JSON File Provider added**<br/>
+You can now store configuration optionally using JSON. The new JsonFileConfigurationProvider
+uses JSON.NET to provide JSON configuration output. JSON.NET is dynamically linked so
+there's no hard dependency on it. If you use this provider make sure JSON.NET is added
+to your project.
+
 
 ##Version 2.11
 *Nov. 11, 2013*
