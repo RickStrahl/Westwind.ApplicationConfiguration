@@ -2,7 +2,7 @@
 
 
 ###Version 2.15
-*Not released yet*
+*Nov. 14th, 2013*
 
 * **JSON File Provider added**<br/>
 You can now store configuration optionally using JSON. The new JsonFileConfigurationProvider
@@ -10,9 +10,12 @@ uses JSON.NET to provide JSON configuration output. JSON.NET is dynamically link
 there's no hard dependency on it. If you use this provider make sure JSON.NET is added
 to your project.
 
+* **Updated Documentation**
+Added this changelog as well as updating the [detailed help file documentation](http://west-wind.com/westwind.applicationconfiguration/docs) step by step instructions.
+
 
 ###Version 2.11
-*Nov. 11, 2013*
+*Nov. 4, 2013*
 
 * **Make XML Config File Reader read-only**<br/>
 Changed the config file reader to open files in read-only mode to minimze multi-user/thread access issues while writing configuration in case other threads want to access the data. Thanks to  Patrick Wyatt.
