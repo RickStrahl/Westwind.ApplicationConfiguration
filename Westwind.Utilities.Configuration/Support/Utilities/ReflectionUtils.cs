@@ -40,8 +40,9 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Runtime.InteropServices;
 using Westwind.Utilities.Configuration.Properties;
+using System.Runtime.InteropServices;
+
 
 namespace Westwind.Utilities
 {
@@ -146,7 +147,7 @@ namespace Westwind.Utilities
 
             return result;
         }
-     
+
 
         /// <summary>
         /// Parses Properties and Fields including Array and Collection references.
@@ -293,12 +294,12 @@ namespace Westwind.Utilities
         {
             if (Property == "this" || Property == "me")
                 return null;
-            
-            string propertyName = Property;            
-            
+
+            string propertyName = Property;
+
             // Deal with Array Property - strip off array indexer
-            if (Property.IndexOf("[") > -1)            
-                propertyName = Property.Substring(0, Property.IndexOf("["));                            
+            if (Property.IndexOf("[") > -1)
+                propertyName = Property.Substring(0, Property.IndexOf("["));
 
             // Get the member
             return Parent.GetType().GetProperty(propertyName, ReflectionUtils.MemberAccess);
@@ -385,7 +386,7 @@ namespace Westwind.Utilities
                 return instance.GetType().GetMethod(method, ReflectionUtils.MemberAccess | BindingFlags.InvokeMethod).Invoke(instance, parms);
             else
                 // Call with parameter types - works only if no null values were passed
-                return instance.GetType().GetMethod(method, ReflectionUtils.MemberAccess | BindingFlags.InvokeMethod, null,parameterTypes, null).Invoke(instance, parms);
+                return instance.GetType().GetMethod(method, ReflectionUtils.MemberAccess | BindingFlags.InvokeMethod, null, parameterTypes, null).Invoke(instance, parms);
         }
 
         /// <summary>
@@ -423,7 +424,7 @@ namespace Westwind.Utilities
             }
             return CallMethod(instance, method, parameterTypes, parms);
         }
-        
+
         /// <summary>
         /// Calls a method on an object with extended . syntax (object: this Method: Entity.CalculateOrderTotal)
         /// </summary>
@@ -521,14 +522,14 @@ namespace Westwind.Utilities
             if (type != null)
                 return type;
 
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             // try to find manually
-            foreach (Assembly ass in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (Assembly asm in assemblies)
             {
-                type = ass.GetType(typeName, false);
+                type = asm.GetType(typeName, false);
 
                 if (type != null)
                     break;
-
             }
             return type;
         }
@@ -556,60 +557,52 @@ namespace Westwind.Utilities
         /// </summary>
         /// <param name="rawValue">The Value or Object to convert to a string</param>
         /// <param name="culture">Culture for numeric and DateTime values</param>
+        /// <param name="unsupportedReturn">Return string for unsupported types</param>
         /// <returns>string</returns>
-        public static string TypedValueToString(object rawValue, CultureInfo culture)
+        public static string TypedValueToString(object rawValue, CultureInfo culture = null, string unsupportedReturn = null)
         {
             if (rawValue == null)
                 return string.Empty;
 
-            Type ValueType = rawValue.GetType();
-            string Return = null;
+            if (culture == null)
+                culture = CultureInfo.CurrentCulture;
 
-            if (ValueType == typeof(string))
-                Return = rawValue.ToString();
-            else if (ValueType == typeof(int) || ValueType == typeof(decimal) ||
-                ValueType == typeof(double) || ValueType == typeof(float))
-                Return = string.Format(culture.NumberFormat, "{0}", rawValue);
-            else if (ValueType == typeof(DateTime))
-                Return = string.Format(culture.DateTimeFormat, "{0}", rawValue);
-            else if (ValueType == typeof(bool))
-                Return = rawValue.ToString();
-            else if (ValueType == typeof(byte))
-                Return = rawValue.ToString();
-            else if (ValueType.IsEnum)
-                Return = rawValue.ToString();
-            else if (ValueType == typeof(Guid?))
+            Type valueType = rawValue.GetType();
+            string returnValue = null;
+
+            if (valueType == typeof(string))
+                returnValue = rawValue as string;
+            else if (valueType == typeof(int) || valueType == typeof(decimal) ||
+                valueType == typeof(double) || valueType == typeof(float) || valueType == typeof(Single))
+                returnValue = string.Format(culture.NumberFormat, "{0}", rawValue);
+            else if (valueType == typeof(DateTime))
+                returnValue = string.Format(culture.DateTimeFormat, "{0}", rawValue);
+            else if (valueType == typeof(bool) || valueType == typeof(Byte) || valueType.IsEnum)
+                returnValue = rawValue.ToString();
+            else if (valueType == typeof(Guid?))
             {
                 if (rawValue == null)
-                    Return = string.Empty;
+                    returnValue = string.Empty;
                 else
                     return rawValue.ToString();
             }
             else
             {
                 // Any type that supports a type converter
-                TypeConverter converter = TypeDescriptor.GetConverter(ValueType);
-                if (converter != null && converter.CanConvertTo(typeof(string)))
-                    Return = converter.ConvertToString(null, culture, rawValue);
+                TypeConverter converter = TypeDescriptor.GetConverter(valueType);
+                if (converter != null && converter.CanConvertTo(typeof(string)) && converter.CanConvertFrom(typeof(string)))
+                    returnValue = converter.ConvertToString(null, culture, rawValue);
                 else
+                {
                     // Last resort - just call ToString() on unknown type
-                    Return = rawValue.ToString();
+                    if (!string.IsNullOrEmpty(unsupportedReturn))
+                        returnValue = unsupportedReturn;
+                    else
+                        returnValue = rawValue.ToString();
+                }
             }
 
-            return Return;
-        }
-
-        /// <summary>
-        /// Converts a type to string if possible. This method uses the current culture for numeric and DateTime values.
-        /// It calls the ToString() method on common types and uses a type converter on all other objects
-        /// if available.
-        /// </summary>
-        /// <param name="rawValue">The Value or Object to convert to a string</param>
-        /// <param name="Culture">Culture for numeric and DateTime values</param>
-        /// <returns>string</returns>
-        public static string TypedValueToString(object rawValue)
-        {
-            return TypedValueToString(rawValue, CultureInfo.CurrentCulture);
+            return returnValue;
         }
 
         /// <summary>
@@ -632,12 +625,15 @@ namespace Westwind.Utilities
         /// Culture used for numeric and datetime values.
         /// </param>
         /// <returns>object. Throws exception if it cannot be converted.</returns>
-        public static object StringToTypedValue(string sourceString, Type targetType, CultureInfo culture)
+        public static object StringToTypedValue(string sourceString, Type targetType, CultureInfo culture = null)
         {
             object result = null;
 
-            bool isEmpty = string.IsNullOrEmpty(sourceString); 
-            
+            bool isEmpty = string.IsNullOrEmpty(sourceString);
+
+            if (culture == null)
+                culture = CultureInfo.CurrentCulture;
+
             if (targetType == typeof(string))
                 result = sourceString;
             else if (targetType == typeof(Int32) || targetType == typeof(int))
@@ -698,7 +694,7 @@ namespace Westwind.Utilities
             }
             else if (targetType == typeof(bool))
             {
-                if (!isEmpty && 
+                if (!isEmpty &&
                     sourceString.ToLower() == "true" || sourceString.ToLower() == "on" || sourceString == "1")
                     result = true;
                 else
@@ -718,6 +714,7 @@ namespace Westwind.Utilities
                 // TODO: Convert HexBinary string to byte array
                 result = null;
             }
+
             // Handle nullables explicitly since type converter won't handle conversions
             // properly for things like decimal separators currency formats etc.
             // Grab underlying type and pass value to that
@@ -739,7 +736,7 @@ namespace Westwind.Utilities
                 else
                 {
                     Debug.Assert(false, string.Format("Type Conversion not handled in StringToTypedValue for {0} {1}",
-                                                      targetType.Name,sourceString) );
+                                                        targetType.Name, sourceString));
                     throw (new InvalidCastException(Resources.StringToTypedValueValueTypeConversionFailed + targetType.Name));
                 }
             }
@@ -747,27 +744,7 @@ namespace Westwind.Utilities
             return result;
         }
 
-        /// <summary>
-        /// Turns a string into a typed value generically.
-        /// Explicitly assigns common types and falls back
-        /// on using type converters for unhandled types.         
-        /// 
-        /// Common uses: 
-        /// * UI -&gt; to data conversions
-        /// * Parsers
-        /// <seealso>Class ReflectionUtils</seealso>
-        /// </summary>
-        /// <param name="sourceString">
-        /// The string to convert from
-        /// </param>
-        /// <param name="targetType">
-        /// The type to convert to
-        /// </param>
-        /// <returns>object. Throws exception if it cannot be converted.</returns>
-        public static object StringToTypedValue(string sourceString, Type targetType)
-        {
-            return StringToTypedValue(sourceString, targetType, CultureInfo.CurrentCulture);
-        }
+
 
         /// <summary>
         /// Generic version allow for automatic type conversion without the explicit type
@@ -777,22 +754,11 @@ namespace Westwind.Utilities
         /// <param name="sourceString">input string value to be converted</param>
         /// <param name="culture">Culture applied to conversion</param>
         /// <returns></returns>
-        public static T StringToTypedValue<T>(string sourceString, CultureInfo culture)                            
-        {            
-            return (T) StringToTypedValue(sourceString, typeof(T), culture);            
+        public static T StringToTypedValue<T>(string sourceString, CultureInfo culture = null)
+        {
+            return (T)StringToTypedValue(sourceString, typeof(T), culture);
         }
 
-        /// <summary>
-        /// Generic version allow for automatic type conversion without the explicit type
-        /// parameter. Defaults conversion to CurrentCulture.
-        /// </summary>
-        /// <typeparam name="T">Type to be converted to</typeparam>
-        /// <param name="sourceString">input string value to be converted</param>
-        /// <returns></returns>
-        public static T StringToTypedValue<T>(string sourceString)
-        {
-            return (T)StringToTypedValue(sourceString, typeof(T), CultureInfo.CurrentCulture);
-        }
 
         /// <summary>
         /// Returns a List of KeyValuePair object
@@ -812,8 +778,8 @@ namespace Westwind.Utilities
                 if (!valueAsFieldValueNumber)
                     items.Add(new KeyValuePair<string, string>(enumValue.ToString(), StringUtils.FromCamelCase(strValue)));
                 else
-                    items.Add(new KeyValuePair<string, string>(  ((int)enumValue).ToString(), 
-                                                                 StringUtils.FromCamelCase(strValue) 
+                    items.Add(new KeyValuePair<string, string>(((int)enumValue).ToString(),
+                                                                 StringUtils.FromCamelCase(strValue)
                                                               ));
             }
             return items;
@@ -826,8 +792,8 @@ namespace Westwind.Utilities
         /// <param name="typeName">Full type name (namespace.class)</param>
         /// <param name="property">Property to get value from</param>
         /// <returns></returns>
-         public static object GetStaticProperty(string typeName, string property)
-        {            
+        public static object GetStaticProperty(string typeName, string property)
+        {
             Type type = GetTypeFromName(typeName);
             if (type == null)
                 return null;
@@ -841,168 +807,20 @@ namespace Westwind.Utilities
         /// <param name="type">Type instance for the static property</param>
         /// <param name="property">Property name as a string</param>
         /// <returns></returns>
-         public static object GetStaticProperty(Type type, string property)
-         {
-             object result = null;
-             try
-             {
-                 result = type.InvokeMember(property, BindingFlags.Static | BindingFlags.Public | BindingFlags.GetField | BindingFlags.GetProperty, null, type, null);
-             }
-             catch
-             {
-                 return null;
-             }
-
-             return result;
-         }
-
-        #region COM Reflection Routines
-
-        /// <summary>
-        /// Retrieve a dynamic 'non-typelib' property
-        /// </summary>
-        /// <param name="instance">Object to make the call on</param>
-        /// <param name="property">Property to retrieve</param>
-        /// <returns></returns>
-        public static object GetPropertyCom(object instance, string property)
+        public static object GetStaticProperty(Type type, string property)
         {
-            return instance.GetType().InvokeMember(property, ReflectionUtils.MemberAccess | BindingFlags.GetProperty | BindingFlags.GetField, null,
-                                                instance, null);
-        }
-
-
-        /// <summary>
-        /// Returns a property or field value using a base object and sub members including . syntax.
-        /// For example, you can access: oCustomer.oData.Company with (this,"oCustomer.oData.Company")
-        /// </summary>
-        /// <param name="parent">Parent object to 'start' parsing from.</param>
-        /// <param name="property">The property to retrieve. Example: 'oBus.oData.Company'</param>
-        /// <returns></returns>
-        public static object GetPropertyExCom(object parent, string property)
-        {
-
-            Type Type = parent.GetType();
-
-            int lnAt = property.IndexOf(".");
-            if (lnAt < 0)
+            object result = null;
+            try
             {
-                if (property == "this" || property == "me")
-                    return parent;
-
-                // Get the member
-                return parent.GetType().InvokeMember(property, ReflectionUtils.MemberAccess | BindingFlags.GetProperty | BindingFlags.GetField, null,
-                    parent, null);
+                result = type.InvokeMember(property, BindingFlags.Static | BindingFlags.Public | BindingFlags.GetField | BindingFlags.GetProperty, null, type, null);
             }
-
-            // Walk the . syntax - split into current object (Main) and further parsed objects (Subs)
-            string Main = property.Substring(0, lnAt);
-            string Subs = property.Substring(lnAt + 1);
-
-            object Sub = parent.GetType().InvokeMember(Main, ReflectionUtils.MemberAccess | BindingFlags.GetProperty | BindingFlags.GetField, null,
-                parent, null);
-
-            // Recurse further into the sub-properties (Subs)
-            return ReflectionUtils.GetPropertyExCom(Sub, Subs);
-        }
-
-        /// <summary>
-        /// Sets the property on an object.
-        /// </summary>
-        /// <param name="Object">Object to set property on</param>
-        /// <param name="Property">Name of the property to set</param>
-        /// <param name="Value">value to set it to</param>
-        public static void SetPropertyCom(object Object, string Property, object Value)
-        {
-            Object.GetType().InvokeMember(Property, ReflectionUtils.MemberAccess | BindingFlags.SetProperty | BindingFlags.SetField, null, Object, new object[1] { Value });            
-        }
-
-        /// <summary>
-        /// Sets the value of a field or property via Reflection. This method alws 
-        /// for using '.' syntax to specify objects multiple levels down.
-        /// 
-        /// ReflectionUtils.SetPropertyEx(this,"Invoice.LineItemsCount",10)
-        /// 
-        /// which would be equivalent of:
-        /// 
-        /// Invoice.LineItemsCount = 10;
-        /// </summary>
-        /// <param name="Object Parent">
-        /// Object to set the property on.
-        /// </param>
-        /// <param name="String Property">
-        /// Property to set. Can be an object hierarchy with . syntax.
-        /// </param>
-        /// <param name="Object Value">
-        /// Value to set the property to
-        /// </param>
-        public static object SetPropertyExCom(object parent, string property, object value)
-        {
-            Type Type = parent.GetType();
-
-            int lnAt = property.IndexOf(".");
-            if (lnAt < 0)
+            catch
             {
-                // Set the member
-                parent.GetType().InvokeMember(property, ReflectionUtils.MemberAccess | BindingFlags.SetProperty | BindingFlags.SetField, null,
-                    parent, new object[1] { value });
-
                 return null;
             }
 
-            // Walk the . syntax - split into current object (Main) and further parsed objects (Subs)
-            string Main = property.Substring(0, lnAt);
-            string Subs = property.Substring(lnAt + 1);
-
-
-            object Sub = parent.GetType().InvokeMember(Main, ReflectionUtils.MemberAccess | BindingFlags.GetProperty | BindingFlags.GetField, null,
-                parent, null);
-
-            return SetPropertyExCom(Sub, Subs, value);
+            return result;
         }
-
-
-        /// <summary>
-        /// Wrapper method to call a 'dynamic' (non-typelib) method
-        /// on a COM object
-        /// </summary>
-        /// <param name="params"></param>
-        /// 1st - Method name, 2nd - 1st parameter, 3rd - 2nd parm etc.
-        /// <returns></returns>
-        public static object CallMethodCom(object instance, string method, params object[] parms)
-        {
-            return instance.GetType().InvokeMember(method, ReflectionUtils.MemberAccess | BindingFlags.InvokeMethod, null, instance, parms);
-        }
-
-        /// <summary>
-        /// Calls a method on a COM object with '.' syntax (Customer instance and Address.DoSomeThing method)
-        /// </summary>
-        /// <param name="parent">the object instance on which to call method</param>
-        /// <param name="method">The method or . syntax path to the method (Address.Parse)</param>
-        /// <param name="parms">Any number of parameters</param>
-        /// <returns></returns>
-        public static object CallMethodExCom(object parent, string method, params object[] parms)
-        {
-            Type Type = parent.GetType();
-
-            // no more .s - we got our final object
-            int at = method.IndexOf(".");
-            if (at < 0)
-            {
-                return ReflectionUtils.CallMethod(parent, method, parms);
-            }
-
-            // Walk the . syntax - split into current object (Main) and further parsed objects (Subs)
-            string Main = method.Substring(0, at);
-            string Subs = method.Substring(at + 1);
-
-            object Sub = parent.GetType().InvokeMember(Main, ReflectionUtils.MemberAccess | BindingFlags.GetProperty | BindingFlags.GetField, null,
-                parent, null);
-
-            // Recurse until we get the lowest ref
-            return CallMethodEx(Sub, Subs, parms);
-        }
-        #endregion
-
     }
 
 

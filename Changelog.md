@@ -1,7 +1,17 @@
 #West Wind Application Configuration Change Log
-------------------------------------------------
 
-##Version 2.11
+
+###Version 2.15
+*Not released yet*
+
+* **JSON File Provider added**<br/>
+You can now store configuration optionally using JSON. The new JsonFileConfigurationProvider
+uses JSON.NET to provide JSON configuration output. JSON.NET is dynamically linked so
+there's no hard dependency on it. If you use this provider make sure JSON.NET is added
+to your project.
+
+
+###Version 2.11
 *Nov. 11, 2013*
 
 * **Make XML Config File Reader read-only**<br/>
@@ -17,10 +27,10 @@ Fix issue configuration file issue in one of the AutoConfig file tests. Fix a sm
 Accidentally left outdated V1 documentation on the detailed developer documentation site. Fixed.
 
 
-##Version 2.10
+###Version 2.10
 *August 28th, 2013*
 
-* **License Changed to MIT**<br/>
+* **License Change - drop commercial License Requirement**<br/>
 We've dropped the requirement for a commercial license for this tool and are using a pure MIT license, 
 with an *optional* commercial license available for those that want official support, require a 
 commercial license in their organization or simply want to support this project.
@@ -32,7 +42,7 @@ The documentation both on GitHub and in the online/chm help files have been upda
 Fixed a number of small issues with the configuration file and Sql providers. See GitHub commit history for more info.
 
 
-##Version 2.00
+###Version 2.00
 *January 14th, 2013*
 
 * **Simplified Instantiation Management**<br/>

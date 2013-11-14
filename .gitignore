@@ -27,5 +27,6 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 *.vssscc
 $tf*/
+/packages
 /Westwind.ApplicationConfiguration.WebSample/Properties/PublishProfiles/*.pubxml
 /Westwind.ApplicationConfiguration.WebSample/Properties/PublishProfiles/*.pubxml
