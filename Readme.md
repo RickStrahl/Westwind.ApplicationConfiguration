@@ -1,11 +1,17 @@
 #West Wind Application Configuration
 ###Strongly typed configuration classes for .NET Applications###
+
 .NET library that provides for code-first creation of configuration settings
-using strongly typed .NET classes. Configuration data can be mapped to various
-configuration stores and can auto-sync from store to class and vice versa.
-You can use standard .NET config files, sections and external files, or 
+using strongly typed .NET classes. Create a class, add properties for configuration
+values, instantiate and automatically read and optionally write your strongly typed
+configuration values from the configuration store.
+
+Configuration data can be stored in various configuration formats and 
+can auto-sync from store to class and vice versa. You can use standard 
+.NET config files (default), including custom sections and external files, or 
 other custom stores including plain XML files, strings or a database.
-Additional custom stores can also be created easily.
+It's also easy to create your own configuration providers to store
+config data in some other format.
 
 Unlike the built-in .NET Configuration Manager, the classes you
 create are strongly typed and automatically convert config store values
@@ -25,13 +31,14 @@ This library provides:
 * Support for multiple configuration objects simultaneously
 * Works in any kind of .NET application: Web, Desktop, Console, Service...
 
-Default Configuration Storage formats:
+Provided Configuration Storage formats:
 
 * Standard .NET .config files
-	* Custom Configuration Sections
-	* External Configuration Files
-    * AppSettings
+	* AppSettings
+    * Custom Configuration Sections
+	* External Configuration Files    
 * Standalone, plain XML files
+* Json files (requires JSON.NET)
 * Strings
 * Sql Server Tables
 * Customizable to create your own Configuration Providers
@@ -48,7 +55,7 @@ here:
 * [License (MIT and commercial option)](http://west-wind.com/westwind.ApplicationConfiguration/docs/?page=_2lp0u0i9b.htm)
 
 West Wind Application Configuration is also part of: 
-[West Wind Web and Ajax Toolkit's Westwind.Utilities library](http://west-wind.com/WestwindWebToolkit/)
+[West Wind Toolkit's Westwind.Utilities library](http://west-wind.com/WestwindToolkit/)
 
 ## Getting Started
 To create configurations, simply create a class that holds properties
@@ -250,8 +257,11 @@ classes to separate distinct sections or tasks within an application.
 Ideally you store the configuration objects on a global static instance like this:
 
 ```c#
-App.Configuration = new MyApplicationConfiguration(null);
-App.AdminConfiguration = new AdminConfiguration(null);
+App.Configuration = new MyApplicationConfiguration();
+App.Configuration.Initialize();
+
+App.AdminConfiguration = new AdminConfiguration();
+App.AdminConfiguration.Initialize();
 ```
 
 This allows for nice compartmentalization of configuration settings and

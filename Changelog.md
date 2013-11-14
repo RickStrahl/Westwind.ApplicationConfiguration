@@ -30,7 +30,7 @@ Accidentally left outdated V1 documentation on the detailed developer documentat
 ###Version 2.10
 *August 28th, 2013*
 
-* **License Changed to MIT**<br/>
+* **License Change - drop commercial License Requirement**<br/>
 We've dropped the requirement for a commercial license for this tool and are using a pure MIT license, 
 with an *optional* commercial license available for those that want official support, require a 
 commercial license in their organization or simply want to support this project.
