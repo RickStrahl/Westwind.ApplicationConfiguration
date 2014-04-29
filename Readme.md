@@ -276,10 +276,10 @@ support you can write out to.
 
 If you're using the .config format you're limited to key value pairs in 
 configuration sections, so your configuration objects have to preferrably
-single level without child types.
+be single level without child types.
 
-However, the ConfigurationFileConfigurationProvider does support serialization
-of simple complex types and IList based lists.
+However, the ConfigurationFileConfigurationProvider **does** support serialization
+of some complex types and IList-based lists.
 
 ####Complex Types using ToString()/FromString()
 One of the easiest way to serialize configuration child objects is to create
@@ -385,8 +385,6 @@ produces the following .config:
    <add key="ServerList3" value="Tempest" />
 </CustomConfigFileConfiguration>
 ```
-
-
 
 ##Class Structure
 This library consists of the main AppConfiguration class plus provider
