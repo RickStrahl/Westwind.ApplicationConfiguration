@@ -12,7 +12,7 @@ if found can be used to deserialize object. [more info](http://west-wind.com/wes
 You can now also serialize IList objects into the config file. The list
 is serialize a ItemList1,ItemList2,ItemList3 where ItemList is the name
 of the property. Complex objects are supported with the new complex
-type parsing support or TypeConverters.
+type parsing support or TypeConverters. [more info](http://west-wind.com/westwindtoolkit/docs/?page=_1cx0ymket.htm)
 
 
 ###Version 2.15

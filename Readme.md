@@ -268,7 +268,127 @@ This allows for nice compartmentalization of configuration settings and
 also for multiple components/assemblies to have their own private 
 configuration settings.
 
-## Class Structure
+##Complex Type Serialization
+If you're using a configuration store other than .NET .config files you
+can easily create complex hierarchical types as these types are serialized
+using either XML or JSON serialization - anything those serialization formats
+support you can write out to.
+
+If you're using the .config format you're limited to key value pairs in 
+configuration sections, so your configuration objects have to preferrably
+single level without child types.
+
+However, the ConfigurationFileConfigurationProvider does support serialization
+of simple complex types and IList based lists.
+
+####Complex Types using ToString()/FromString()
+One of the easiest way to serialize configuration child objects is to create
+a custom type that implements a ToString() and static FromString() method that
+effectively provides two-way serialization.
+
+Here's an example:
+
+```c#
+public class LicenseInformation
+{
+    public string Name { get; set; }
+    public string Company { get; set; }
+    public int LicenseKey { get; set; }
+
+    public static LicenseInformation FromString(string data)
+    {
+        return StringSerializer.Deserialize<LicenseInformation>(data,",");
+    }
+
+    public override string ToString()
+    {
+        return StringSerializer.SerializeObject(this, ",");
+    }
+}
+```
+
+Here a StringSerializer helper is used that basically does a string.Join()/Split()
+to create a serialized string with a separator of an object in the ToString() and 
+FromString() methods. You can of course use any mechanism to create a string 
+that represents the serialized object data but StringSerializer is a quick and easy
+way to do so.
+
+If you now add this to a configuration object like this:
+
+```c#
+public class CustomConfigFileConfiguration : Westwind.Utilities.Configuration.AppConfiguration
+{
+    public string ApplicationName { get; set; }      
+    public LicenseInformation ComplexType { get; set; }
+
+    public CustomConfigFileConfiguration()
+    {
+        ApplicationName = "Configuration Tests";
+        ComplexType = new LicenseInformation()
+        {
+            Name = "Rick", 
+            Company = "West Wind",
+            LicenseKey = 10
+        };
+    }
+}
+```
+you get a serialized configuration section like this:
+
+```c#
+<CustomConfig>
+    <add name="ApplicationName" value="Configuration Tests" />
+    <add key="ComplexType" value="Rick,West Wind,10" />
+</CustomConfig>
+```
+
+####TypeConverters
+You can also use custom type converters on the object to serialize which is a bit
+more involved, but 
+
+You can find out more here:
+http://west-wind.com/westwindtoolkit/docs/_1cx0ymket.htm
+
+####IList Types
+In addition to complex objects you can also serialize IList values or objects 
+in .config files. List values are enumerated and read/written with indexes such
+as ItemList1, ItemList2, ItemList3 etc. with each item representing either a single
+value such as string, or a complex object that supports either the ToString/FromString()
+or TypeConverter serialization discussed in the previous section.
+
+```c#
+public class CustomConfigFileConfiguration : Westwind.Utilities.Configuration.AppConfiguration
+{
+        public string ApplicationName { get; set; }
+        public List<string> ServerList { get; set;  }
+
+        public CustomConfigFileConfiguration()
+        {
+            ApplicationName = "Configuration Tests";
+            ServerList = new List<string>()
+            {
+                "DevServer",
+                "Maximus",
+                "Tempest"
+            };
+        }
+}
+```
+
+produces the following .config:
+
+```c#
+<CustomConfigFileConfiguration>
+   <add key="ApplicationName" value="Configuration Tests" />   
+   <add key="ServerList1" value="DevServer" />
+   <add key="ServerList2" value="Maximus" />
+   <add key="ServerList3" value="Tempest" />
+</CustomConfigFileConfiguration>
+```
+
+
+
+##Class Structure
 This library consists of the main AppConfiguration class plus provider
 logic. Providers are based on a IConfigurationProvider interface with
 a ConfigurationProviderBase class providing base functionality.
