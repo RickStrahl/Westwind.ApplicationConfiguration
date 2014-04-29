@@ -33,15 +33,11 @@ namespace Westwind.Utilities.Configuration.Tests
 
         [TestMethod]
         public void DefaultConstructorInstanceTest()
-        {
+        {         
             var config = new AutoConfigFileConfiguration();
-
+            
             // gets .config file, AutoConfigFileConfiguration section
-            config.Initialize(sectionName: "MyAdminConfiguration");
-
-            string appName = config.ApplicationName;
-            DebugModes mode = config.DebugMode;
-            int maxItems = config.MaxDisplayListItems;
+            config.Initialize();
 
             Assert.IsNotNull(config);
             Assert.IsFalse(string.IsNullOrEmpty(config.ApplicationName));
@@ -59,18 +55,18 @@ namespace Westwind.Utilities.Configuration.Tests
             // Create a customized provider to set provider options
             var provider = new ConfigurationFileConfigurationProvider<AutoConfigFileConfiguration>()
             {
-                ConfigurationSection = "MyCustomConfiguration",
+                ConfigurationSection = "CustomConfiguration",
                 EncryptionKey = "seekrit123",
-                PropertiesToEncrypt = "MailServer,MailServerPassword"
+                PropertiesToEncrypt = "MailServer,MailServerPassword"                
             };
 
-            config.Initialize(provider);
-
-            // Config File and custom section should exist
+            config.Initialize(provider);  
+            
+            // Config File and custom section should have been created in config file
             string text = File.ReadAllText(TestHelpers.GetTestConfigFilePath());
 
             Assert.IsFalse(string.IsNullOrEmpty(text));
-            Assert.IsTrue(text.Contains("<MyCustomConfiguration>"));
+            Assert.IsTrue(text.Contains("<CustomConfiguration>"));
 
             // MailServer/MailServerPassword value should be encrypted
             Console.WriteLine(text);
@@ -78,7 +74,7 @@ namespace Westwind.Utilities.Configuration.Tests
 
         [TestMethod]
         public void AutoConfigWriteConfigurationTest()
-        {
+        {            
             var config = new AutoConfigFileConfiguration();
             config.Initialize();
 
@@ -110,6 +106,12 @@ namespace Westwind.Utilities.Configuration.Tests
             config.DebugMode = DebugModes.DeveloperErrorMessage;
             config.ApplicationName = "Changed";
             config.SendAdminEmailConfirmations = true;
+            
+            // update complex type
+            config.License.Company = "Updated Company";
+            config.License.Name = "New User";
+            config.License.LicenseKey = 22;
+
             config.Write();
 
             string text = File.ReadAllText(TestHelpers.GetTestConfigFilePath());
@@ -119,11 +121,14 @@ namespace Westwind.Utilities.Configuration.Tests
             Assert.IsTrue(text.Contains(@"<add key=""MaxDisplayListItems"" value=""12"" />"));
             Assert.IsTrue(text.Contains(@"<add key=""SendAdminEmailConfirmations"" value=""True"" />"));
 
+            Assert.IsTrue(text.Contains(@"<add key=""License"" value=""New User,Updated Company,22"" />"));
+
             var config2 = new AutoConfigFileConfiguration();
             config2.Initialize();
 
             Assert.AreEqual(config2.MaxDisplayListItems, 12);
             Assert.AreEqual(config2.ApplicationName, "Changed");
+            Assert.AreEqual("Updated Company",config2.License.Company);
 
             // reset to default val
             config2.MaxDisplayListItems = 15;
@@ -138,7 +143,7 @@ namespace Westwind.Utilities.Configuration.Tests
         public void DefaultConstructor2InstanceTest()
         {
             var config = new AutoConfigFile2Configuration();
-
+            
             // Not required since custom constructor calls this
             //config.Initialize();
 
@@ -157,7 +162,7 @@ namespace Westwind.Utilities.Configuration.Tests
         public void WriteConfiguration2Test()
         {
             var config = new AutoConfigFile2Configuration();
-
+            
             // not necesary since constructor calls internally
             //config.Initialize();
 

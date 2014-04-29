@@ -18,7 +18,7 @@ namespace Westwind.Utilities.Configuration.Tests
     /// When using XML, String, Database the default constructor 
     /// needs to be left at default to avoid recursive loading
     /// </summary>
-    public class AutoConfigFileConfiguration : Westwind.Utilities.Configuration.AppConfiguration
+    class AutoConfigFileConfiguration : Westwind.Utilities.Configuration.AppConfiguration
     {
         public string ApplicationName { get; set; }
         public DebugModes DebugMode { get; set; }
@@ -27,6 +27,12 @@ namespace Westwind.Utilities.Configuration.Tests
         public string MailServer { get; set; }
         public string MailServerPassword { get; set; }
 
+        /// <summary>
+        /// Type that has ToString() and FromString() methods
+        /// to allow serialization
+        /// </summary>
+        public LicenseInformation License { get; set; }
+        
         public AutoConfigFileConfiguration()
         {
             ApplicationName = "Configuration Tests";
@@ -35,6 +41,12 @@ namespace Westwind.Utilities.Configuration.Tests
             SendAdminEmailConfirmations = false;
             MailServer = "mail.MyWickedServer.com:334";
             MailServerPassword = "seekrity";
+            License = new LicenseInformation()
+            {
+                Name = "User 1",
+                Company = "Company 1",
+                LicenseKey = 10
+            };
         }
 
 

@@ -99,7 +99,7 @@ namespace Westwind.Utilities.Configuration
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public override bool Write(AppConfiguration config)
+        public override bool  Write(AppConfiguration config)
         {
             EncryptFields(config);
             

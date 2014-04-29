@@ -60,6 +60,7 @@
     <Compile Include="Support\Utilities\JsonSerializationUtils.cs" />
     <Compile Include="Support\Utilities\ReflectionUtils.cs" />
     <Compile Include="Support\Utilities\SerializationUtils.cs" />
+    <Compile Include="Support\Utilities\StringSerializer.cs" />
     <Compile Include="Support\Utilities\StringUtils.cs" />
     <Compile Include="Providers\JsonFileConfigurationProvider.cs" />
     <Compile Include="Providers\XmlFileConfigurationProvider.cs" />

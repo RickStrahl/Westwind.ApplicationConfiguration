@@ -32,11 +32,17 @@
 #endregion
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Configuration;
+using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using System.Globalization;
+using Westwind.Utilities.Configuration.Properties;
 
 namespace Westwind.Utilities.Configuration
 {
@@ -47,8 +53,9 @@ namespace Westwind.Utilities.Configuration
     /// and specification of the configuration section that settings are
     /// applied to.
     /// </summary>
-    public class ConfigurationFileConfigurationProvider<TAppConfiguration> : ConfigurationProviderBase<TAppConfiguration>
-        where TAppConfiguration: AppConfiguration, new()
+    public class ConfigurationFileConfigurationProvider<TAppConfiguration> :
+        ConfigurationProviderBase<TAppConfiguration>
+        where TAppConfiguration : AppConfiguration, new()
     {
 
         /// <summary>
@@ -56,7 +63,7 @@ namespace Westwind.Utilities.Configuration
         /// stored in. If not specified uses the default Configuration Manager
         /// and its default store.
         /// </summary>
-        public string ConfigurationFile {get; set; }
+        public string ConfigurationFile { get; set; }
 
         /// <summary>
         /// Optional The Configuration section where settings are stored.
@@ -89,7 +96,7 @@ namespace Westwind.Utilities.Configuration
         /// <returns></returns>
         public override TAppConfig Read<TAppConfig>()
         {
-            TAppConfig config = Activator.CreateInstance(typeof(TAppConfig), true) as TAppConfig;
+            TAppConfig config = Activator.CreateInstance(typeof (TAppConfig), true) as TAppConfig;
             if (!Read(config))
                 return null;
 
@@ -107,11 +114,13 @@ namespace Westwind.Utilities.Configuration
         {
             // Config reading from external files works a bit differently 
             // so use a separate method to handle it
-           if (!string.IsNullOrEmpty(ConfigurationFile))
-                return Read(config,ConfigurationFile);
+            if (!string.IsNullOrEmpty(ConfigurationFile))
+                return Read(config, ConfigurationFile);
 
             Type typeWebConfig = config.GetType();
-            MemberInfo[] Fields = typeWebConfig.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty | BindingFlags.GetField);
+            MemberInfo[] Fields =
+                typeWebConfig.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty |
+                                         BindingFlags.GetField);
 
             // Set a flag for missing fields
             // If we have any we'll need to write them out into .config
@@ -126,28 +135,37 @@ namespace Westwind.Utilities.Configuration
                 ConfigurationManager.RefreshSection("appSettings");
             else
                 ConfigurationManager.RefreshSection(ConfigurationSection);
-                
+
+            NameValueCollection configManager;
+
+            configManager = string.IsNullOrEmpty(ConfigurationSection)
+                ? ConfigurationManager.GetSection("AppSettings") as NameValueCollection
+                : ConfigurationManager.GetSection(ConfigurationSection) as NameValueCollection;
             
+
+            if (configManager == null)
+            {
+                Write(config);
+                return true;
+            }
+
+
             // Loop through all fields and properties                 
             foreach (MemberInfo Member in Fields)
             {
-                string typeName = null;
-
                 FieldInfo field = null;
                 PropertyInfo property = null;
                 Type fieldType = null;
 
                 if (Member.MemberType == MemberTypes.Field)
                 {
-                    field = (FieldInfo)Member;
+                    field = (FieldInfo) Member;
                     fieldType = field.FieldType;
-                    typeName = fieldType.Name.ToLower();
                 }
                 else if (Member.MemberType == MemberTypes.Property)
                 {
-                    property = (PropertyInfo)Member;
+                    property = (PropertyInfo) Member;
                     fieldType = property.PropertyType;
-                    typeName = fieldType.Name.ToLower();
                 }
                 else
                     continue;
@@ -158,34 +176,61 @@ namespace Westwind.Utilities.Configuration
                 if (fieldName == "errormessage" || fieldName == "provider")
                     continue;
 
-                string value = null;
-                if (string.IsNullOrEmpty(ConfigurationSection))
-                    value = ConfigurationManager.AppSettings[fieldName];
+                if (!IsIList(fieldType))
+                {
+                    // Single value
+                    string value = configManager[fieldName];
+
+                    if (value == null)
+                    {
+                        missingFields = true;
+                        continue;
+                    }
+
+                    // If we're encrypting decrypt any field that are encyrpted
+                    if (value != string.Empty && fieldsToEncrypt.IndexOf("," + fieldName + ",") > -1)
+                        value = Encryption.DecryptString(value, EncryptionKey);
+
+                    try
+                    {
+                        // Assign the value to the property
+                        ReflectionUtils.SetPropertyEx(config, Member.Name,
+                            StringToTypedValue(value, fieldType, CultureInfo.InvariantCulture));
+                    }
+                    catch
+                    {
+                    }
+                }
                 else
                 {
-                    NameValueCollection Values =
-                        ConfigurationManager.GetSection(ConfigurationSection) as NameValueCollection;
-                    if (Values != null)
-                        value = Values[fieldName];
-                }
+                    // List Value
+                    var list = Activator.CreateInstance(fieldType) as IList;
+                    var elType = fieldType.GetElementType();
+                    if (elType == null)
+                    {
+                        var generic = fieldType.GetGenericArguments();
+                        if (generic != null && generic.Length > 0)
+                            elType = generic[0];
+                    }
 
-                if (value == null)
-                {
-                    missingFields = true;
-                    continue;
-                }
+                    int count = 1;
+                    string value = string.Empty;
 
-                // If we're encrypting decrypt any field that are encyrpted
-                if (value != string.Empty && fieldsToEncrypt.IndexOf("," + fieldName + ",") > -1)
-                    value = Encryption.DecryptString(value, EncryptionKey);
+                    while (value != null)
+                    {
+                        value = configManager[fieldName + count];                        
+                        if (value == null)
+                            break;
+                        list.Add(StringToTypedValue(value, elType, CultureInfo.InvariantCulture));
+                        count++;
+                    }
 
-                try
-                {
-                    // Assign the value to the property
-                    ReflectionUtils.SetPropertyEx(config, fieldName,
-                        ReflectionUtils.StringToTypedValue(value, fieldType, CultureInfo.InvariantCulture));
+                    try
+                    {
+                        ReflectionUtils.SetPropertyEx(config, Member.Name, list);
+                    }
+                    catch { }
                 }
-                catch { }
             }
 
             // We have to write any missing keys
@@ -193,6 +238,21 @@ namespace Westwind.Utilities.Configuration
                 Write(config);
 
             return true;
+        }
+
+
+
+
+        bool IsIList(Type type)
+        {            
+            // Enumerable types explicitly supported as 'simple values'
+            if (type == typeof(string) || type == typeof( byte[]) )
+                return false;
+
+            if (type.GetInterface("IList") != null)
+                return true;
+
+            return false;
         }
 
 
@@ -206,11 +266,13 @@ namespace Westwind.Utilities.Configuration
         /// <param name="config">Configuration instance</param>
         /// <param name="filename">Filename to read from</param>
         /// <returns></returns>
-        public override bool Read(AppConfiguration config, string filename)            
+        public override bool Read(AppConfiguration config, string filename)
         {
+
+
             Type typeWebConfig = config.GetType();
             MemberInfo[] Fields = typeWebConfig.GetMembers(BindingFlags.Public |
-               BindingFlags.Instance);
+                                                           BindingFlags.Instance);
 
             // Set a flag for missing fields
             // If we have any we'll need to write them out 
@@ -220,12 +282,12 @@ namespace Westwind.Utilities.Configuration
 
             try
             {
-                Dom.Load(filename);                
+                Dom.Load(filename);
             }
             catch
             {
                 // Can't open or doesn't exist - so try to create it
-                if (!Write(config)) 
+                if (!Write(config))
                     return false;
 
                 // Now load again
@@ -252,13 +314,13 @@ namespace Westwind.Utilities.Configuration
 
                 if (Member.MemberType == MemberTypes.Field)
                 {
-                    Field = (FieldInfo)Member;
+                    Field = (FieldInfo) Member;
                     FieldType = Field.FieldType;
                     TypeName = Field.FieldType.Name.ToLower();
                 }
                 else if (Member.MemberType == MemberTypes.Property)
                 {
-                    Property = (PropertyInfo)Member;
+                    Property = (PropertyInfo) Member;
                     FieldType = Property.PropertyType;
                     TypeName = Property.PropertyType.Name.ToLower();
                 }
@@ -291,7 +353,7 @@ namespace Westwind.Utilities.Configuration
 
                 // Assign the Property
                 ReflectionUtils.SetPropertyEx(config, Fieldname,
-                                     ReflectionUtils.StringToTypedValue(Value, FieldType, CultureInfo.InvariantCulture));
+                    StringToTypedValue(Value, FieldType, CultureInfo.InvariantCulture));
             }
 
             // We have to write any missing keys
@@ -300,7 +362,8 @@ namespace Westwind.Utilities.Configuration
 
             return true;
         }
-        
+
+
         public override bool Write(AppConfiguration config)
         {
             lock (syncWriteLock)
@@ -335,70 +398,43 @@ namespace Westwind.Utilities.Configuration
                 Type typeWebConfig = config.GetType();
                 MemberInfo[] Fields = typeWebConfig.GetMembers(BindingFlags.Instance | BindingFlags.GetField | BindingFlags.GetProperty | BindingFlags.Public);
 
-                string fieldsToEncrypt = "," + PropertiesToEncrypt.ToLower() + ",";
-
+                
                 string ConfigSection = "appSettings";
                 if (!string.IsNullOrEmpty(ConfigurationSection))
                     ConfigSection = ConfigurationSection;
 
+                // make sure we're getting the latest values before we write
                 ConfigurationManager.RefreshSection(ConfigSection);
 
                 foreach (MemberInfo Field in Fields)
                 {
-                    // If we can't find the key - write it out to the document
-                    string Value = null;
-                    object RawValue = null;
-                    if (Field.MemberType == MemberTypes.Field)
-                        RawValue = ((FieldInfo)Field).GetValue(config);
-                    else if (Field.MemberType == MemberTypes.Property)
-                        RawValue = ((PropertyInfo)Field).GetValue(config, null);
-                    else
-                        continue; // not a property or field
-
                     // Don't persist ErrorMessage property
                     if (Field.Name == "ErrorMessage" || Field.Name == "Provider")
                         continue;
 
-                    Value = ReflectionUtils.TypedValueToString(RawValue, CultureInfo.InvariantCulture);
+                    object rawValue = null;
+                    if (Field.MemberType == MemberTypes.Field)
+                        rawValue = ((FieldInfo)Field).GetValue(config);
+                    else if (Field.MemberType == MemberTypes.Property)
+                        rawValue = ((PropertyInfo)Field).GetValue(config, null);
+                    else
+                        continue;
 
-                    // Encrypt the field if in list
-                    if (fieldsToEncrypt.IndexOf("," + Field.Name.ToLower() + ",") > -1)
-                        Value = Encryption.EncryptString(Value, EncryptionKey);
+                    string value = TypedValueToString(rawValue, CultureInfo.InvariantCulture);
 
-                    XmlNode Node = Dom.DocumentElement.SelectSingleNode(
-                        XmlNamespacePrefix + ConfigSection + "/" +
-                        XmlNamespacePrefix + "add[@key='" + Field.Name + "']", XmlNamespaces);
-
-                    if (Node == null)
+                    if (value == "ILIST_TYPE")
                     {
-                        // Create the node and attributes and write it
-                        Node = Dom.CreateNode(XmlNodeType.Element, "add", Dom.DocumentElement.NamespaceURI);
-
-                        XmlAttribute Attr2 = Dom.CreateAttribute("key");
-                        Attr2.Value = Field.Name;
-                        XmlAttribute Attr = Dom.CreateAttribute("value");
-                        Attr.Value = Value;
-
-                        Node.Attributes.Append(Attr2);
-                        Node.Attributes.Append(Attr);
-
-                        XmlNode Parent = Dom.DocumentElement.SelectSingleNode(
-                            XmlNamespacePrefix + ConfigSection, XmlNamespaces);
-
-                        if (Parent == null)
-                            Parent = CreateConfigSection(Dom, ConfigSection);
-
-                        Parent.AppendChild(Node);
+                        var count = 0;
+                        foreach (var item in rawValue as IList)
+                        {
+                            value = TypedValueToString(item, CultureInfo.InvariantCulture);
+                            WriteConfigurationValue(Field.Name + ++count, value, Field, Dom, ConfigSection);
+                        }
                     }
                     else
                     {
-                        // just write the value into the attribute
-                        Node.Attributes.GetNamedItem("value").Value = Value;
+                            WriteConfigurationValue(Field.Name, value, Field, Dom, ConfigSection);
                     }
-
-
-                    string XML = Node.OuterXml;
-
                 } // for each
 
 
@@ -416,7 +452,48 @@ namespace Westwind.Utilities.Configuration
             }
             return true;
         }
-        
+
+        private void WriteConfigurationValue(string keyName, string Value, MemberInfo Field, XmlDocument Dom, string ConfigSection)
+        {
+            string fieldsToEncrypt = "," + PropertiesToEncrypt.ToLower() + ",";
+
+            // Encrypt the field if in list
+            if (fieldsToEncrypt.IndexOf("," + Field.Name.ToLower() + ",") > -1)
+                Value = Encryption.EncryptString(Value, EncryptionKey);
+
+           
+            XmlNode Node = Dom.DocumentElement.SelectSingleNode(
+                XmlNamespacePrefix + ConfigSection + "/" +
+                XmlNamespacePrefix + "add[@key='" + keyName + "']", XmlNamespaces);
+
+            if (Node == null)
+            {
+                // Create the node and attributes and write it
+                Node = Dom.CreateNode(XmlNodeType.Element, "add", Dom.DocumentElement.NamespaceURI);
+
+                XmlAttribute Attr2 = Dom.CreateAttribute("key");
+                Attr2.Value = keyName;
+                XmlAttribute Attr = Dom.CreateAttribute("value");
+                Attr.Value = Value;
+
+                Node.Attributes.Append(Attr2);
+                Node.Attributes.Append(Attr);
+
+                XmlNode Parent = Dom.DocumentElement.SelectSingleNode(
+                    XmlNamespacePrefix + ConfigSection, XmlNamespaces);
+
+                if (Parent == null)
+                    Parent = CreateConfigSection(Dom, ConfigSection);
+
+                Parent.AppendChild(Node);
+            }
+            else
+            {
+                // just write the value into the attribute
+                Node.Attributes.GetNamedItem("value").Value = Value;
+            }
+        }
+
         /// <summary>
         /// Returns a single value from the XML in a configuration file.
         /// </summary>
@@ -524,5 +601,214 @@ namespace Westwind.Utilities.Configuration
         }
 
 
+        /// <summary>
+        /// Converts a type to string if possible. This method supports an optional culture generically on any value.
+        /// It calls the ToString() method on common types and uses a type converter on all other objects
+        /// if available
+        /// </summary>
+        /// <param name="rawValue">The Value or Object to convert to a string</param>
+        /// <param name="culture">Culture for numeric and DateTime values</param>
+        /// <param name="unsupportedReturn">Return string for unsupported types</param>
+        /// <returns>string</returns>
+        static string TypedValueToString(object rawValue, CultureInfo culture = null, string unsupportedReturn = null)
+        {
+            if (rawValue == null)
+                return string.Empty;
+
+            if (culture == null)
+                culture = CultureInfo.CurrentCulture;
+
+            Type valueType = rawValue.GetType();
+            string returnValue = null;
+
+            if (valueType == typeof(string))
+                returnValue = rawValue as string;
+            else if (valueType == typeof(int) || valueType == typeof(decimal) ||
+                valueType == typeof(double) || valueType == typeof(float) || valueType == typeof(Single))
+                returnValue = string.Format(culture.NumberFormat, "{0}", rawValue);
+            else if (valueType == typeof(DateTime))
+                returnValue = string.Format(culture.DateTimeFormat, "{0}", rawValue);
+            else if (valueType == typeof(bool) || valueType == typeof(Byte) || valueType.IsEnum)
+                returnValue = rawValue.ToString();
+            else if (valueType == typeof (byte[]))
+                returnValue = Convert.ToBase64String(rawValue as byte[]);
+            else if (valueType == typeof(Guid?))
+            {
+                if (rawValue == null)
+                    returnValue = string.Empty;
+                else
+                    return rawValue.ToString();
+            }
+            else if (rawValue is IList)
+                return "ILIST_TYPE";
+            else
+            {
+                // Any type that supports a type converter
+                TypeConverter converter = TypeDescriptor.GetConverter(valueType);
+                if (converter != null && converter.CanConvertTo(typeof(string)) && converter.CanConvertFrom(typeof(string)))
+                    returnValue = converter.ConvertToString(null, culture, rawValue);
+                else
+                {
+                    // Last resort - just call ToString() on unknown type
+                    if (!string.IsNullOrEmpty(unsupportedReturn))
+                        returnValue = unsupportedReturn;
+                    else
+                        returnValue = rawValue.ToString();
+                }
+            }
+
+            return returnValue;
+        }
+
+        /// <summary>
+        /// Turns a string into a typed value generically.
+        /// Explicitly assigns common types and falls back
+        /// on using type converters for unhandled types.         
+        /// 
+        /// Common uses: 
+        /// * UI -&gt; to data conversions
+        /// * Parsers
+        /// <seealso>Class ReflectionUtils</seealso>
+        /// </summary>
+        /// <param name="sourceString">
+        /// The string to convert from
+        /// </param>
+        /// <param name="targetType">
+        /// The type to convert to
+        /// </param>
+        /// <param name="culture">
+        /// Culture used for numeric and datetime values.
+        /// </param>
+        /// <returns>object. Throws exception if it cannot be converted.</returns>
+        static object StringToTypedValue(string sourceString, Type targetType, CultureInfo culture = null)
+        {
+            object result = null;
+
+            bool isEmpty = string.IsNullOrEmpty(sourceString);
+
+            if (culture == null)
+                culture = CultureInfo.CurrentCulture;
+
+            if (targetType == typeof(string))
+                result = sourceString;
+            else if (targetType == typeof(Int32) || targetType == typeof(int))
+            {
+                if (isEmpty)
+                    result = 0;
+                else
+                    result = Int32.Parse(sourceString, NumberStyles.Any, culture.NumberFormat);
+            }
+            else if (targetType == typeof(Int64))
+            {
+                if (isEmpty)
+                    result = (Int64)0;
+                else
+                    result = Int64.Parse(sourceString, NumberStyles.Any, culture.NumberFormat);
+            }
+            else if (targetType == typeof(Int16))
+            {
+                if (isEmpty)
+                    result = (Int16)0;
+                else
+                    result = Int16.Parse(sourceString, NumberStyles.Any, culture.NumberFormat);
+            }
+            else if (targetType == typeof(decimal))
+            {
+                if (isEmpty)
+                    result = 0M;
+                else
+                    result = decimal.Parse(sourceString, NumberStyles.Any, culture.NumberFormat);
+            }
+            else if (targetType == typeof(DateTime))
+            {
+                if (isEmpty)
+                    result = DateTime.MinValue;
+                else
+                    result = Convert.ToDateTime(sourceString, culture.DateTimeFormat);
+            }
+            else if (targetType == typeof(byte))
+            {
+                if (isEmpty)
+                    result = 0;
+                else
+                    result = Convert.ToByte(sourceString);
+            }
+            else if (targetType == typeof(double))
+            {
+                if (isEmpty)
+                    result = 0F;
+                else
+                    result = Double.Parse(sourceString, NumberStyles.Any, culture.NumberFormat);
+            }
+            else if (targetType == typeof(Single))
+            {
+                if (isEmpty)
+                    result = 0F;
+                else
+                    result = Single.Parse(sourceString, NumberStyles.Any, culture.NumberFormat);
+            }
+            else if (targetType == typeof(bool))
+            {
+                if (!isEmpty &&
+                    sourceString.ToLower() == "true" || sourceString.ToLower() == "on" || sourceString == "1")
+                    result = true;
+                else
+                    result = false;
+            }
+            else if (targetType == typeof(Guid))
+            {
+                if (isEmpty)
+                    result = Guid.Empty;
+                else
+                    result = new Guid(sourceString);
+            }
+            else if (targetType.IsEnum)
+                result = Enum.Parse(targetType, sourceString);
+            else if (targetType == typeof (byte[]))
+                result = Convert.FromBase64String(sourceString);
+            else if (targetType.Name.StartsWith("Nullable`"))
+            {
+                if (sourceString.ToLower() == "null" || sourceString == string.Empty)
+                    result = null;
+                else
+                {
+                    targetType = Nullable.GetUnderlyingType(targetType);
+                    result = StringToTypedValue(sourceString, targetType);
+                }
+            }
+            else
+            {
+                // Check for TypeConverters or FromString static method
+                TypeConverter converter = TypeDescriptor.GetConverter(targetType);
+                if (converter != null && converter.CanConvertFrom(typeof (string)))
+                    result = converter.ConvertFromString(null, culture, sourceString);
+                else
+                {
+                    // Try to invoke a static FromString method if it exists
+                    try
+                    {
+                        var mi = targetType.GetMethod("FromString");
+                        if (mi != null)
+                        {
+                            return mi.Invoke(null, new object[1] {sourceString});
+                        }
+                    }
+                    catch
+                    {
+                        // ignore error and assume not supported 
+                    }
+
+                    Debug.Assert(false, string.Format("Type Conversion not handled in StringToTypedValue for {0} {1}",
+                        targetType.Name, sourceString));
+                    throw (new InvalidCastException(Resources.StringToTypedValueValueTypeConversionFailed +
+                                                    targetType.Name));
+                }
+            }
+
+            return result;
+        }
+
     }
+
+
 }

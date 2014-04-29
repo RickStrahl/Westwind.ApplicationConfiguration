@@ -1,5 +1,19 @@
 #West Wind Application Configuration Change Log
 
+###Version 2.20
+*not released yet*
+
+* **ConfigurationFile Configuration Provider support for Complex Types**
+Added another option for serialization of flat complex objects, by 
+implementing additional checks for a **static** FromString() method that
+if found can be used to deserialize object. [more info](http://west-wind.com/westwindtoolkit/docs/?page=_1cx0ymket.htm)
+
+* **ConfigurationFile Configuration Provider support for IList**
+You can now also serialize IList objects into the config file. The list
+is serialize a ItemList1,ItemList2,ItemList3 where ItemList is the name
+of the property. Complex objects are supported with the new complex
+type parsing support or TypeConverters.
+
 
 ###Version 2.15
 *Nov. 14th, 2013*
