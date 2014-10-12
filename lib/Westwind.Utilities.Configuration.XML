@@ -526,6 +526,11 @@
               Looks up a localized string similar to Invalid Connection string name..
             </summary>
         </member>
+        <member name="P:Westwind.Utilities.Configuration.Properties.Resources.InvalidEncryptionPropertyName">
+            <summary>
+              Looks up a localized string similar to Invalid encryption property name.
+            </summary>
+        </member>
         <member name="P:Westwind.Utilities.Configuration.Properties.Resources.InvalidTypeForXmlTypeToNETTypeConversion">
             <summary>
               Looks up a localized string similar to Invalid type for XmlType to .NET Type conversion..

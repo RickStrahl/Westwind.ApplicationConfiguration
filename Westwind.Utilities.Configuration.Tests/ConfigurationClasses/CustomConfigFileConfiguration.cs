@@ -10,16 +10,16 @@ namespace Westwind.Utilities.Configuration.Tests
     /// Custom Configuration Provider implementation that allows
     /// uses a different section and encrypts a couple of properties
     /// </summary>
-    public class CustomConfigFileConfiguration : Westwind.Utilities.Configuration.AppConfiguration
-    {
-        public string ApplicationName { get; set; }
-        public DebugModes DebugMode { get; set; }
-        public int MaxDisplayListItems { get; set; }
-        public bool SendAdminEmailConfirmations { get; set; }
-        public string Password { get; set; }
-        public string AppConnectionString { get; set; }
-        public LicenseInformation ComplexType { get; set; }
-        public List<string> ServerList { get; set;  }
+public class CustomConfigFileConfiguration : Westwind.Utilities.Configuration.AppConfiguration
+{
+    public string ApplicationName { get; set; }
+    public DebugModes DebugMode { get; set; }
+    public int MaxDisplayListItems { get; set; }
+    public bool SendAdminEmailConfirmations { get; set; }
+    public string Password { get; set; }
+    public string AppConnectionString { get; set; }
+    public LicenseInformation License { get; set; }
+    public List<string> ServerList { get; set;  }
 
         public CustomConfigFileConfiguration()
         {
@@ -29,11 +29,11 @@ namespace Westwind.Utilities.Configuration.Tests
             SendAdminEmailConfirmations = false;
             Password = "seekrit";
             AppConnectionString = "server=.;database=hosers;uid=bozo;pwd=seekrit;";
-            ComplexType = new LicenseInformation()
+            License = new LicenseInformation()
             {
                 Company = "West Wind",
                 Name = "Rick", 
-                LicenseKey = 10
+                LicenseKey = "westwindrick-51123"
             };
             ServerList = new List<string>()
             {
@@ -57,7 +57,7 @@ namespace Westwind.Utilities.Configuration.Tests
                 //ConfigurationFile = "CustomConfiguration.config",
                 ConfigurationSection = sectionName,
                 EncryptionKey = "ultra-seekrit",  // use a generated value here
-                PropertiesToEncrypt = "Password,AppConnectionString"
+                PropertiesToEncrypt = "Password,AppConnectionString,License.LicenseKey"
             };
 
             return provider;

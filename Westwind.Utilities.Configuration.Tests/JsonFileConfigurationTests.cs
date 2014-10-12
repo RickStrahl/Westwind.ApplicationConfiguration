@@ -34,6 +34,8 @@ namespace Westwind.Utilities.Configuration.Tests
         [TestMethod]
         public void WriteConfigurationTest()
         {
+            File.Delete(STR_JSONCONFIGFILE);
+
             var config = new JsonFileConfiguration();
             config.Initialize(STR_JSONCONFIGFILE);
 
@@ -45,6 +47,9 @@ namespace Westwind.Utilities.Configuration.Tests
             // secure properties
             config.Password = "seekrit2";
             config.AppConnectionString = "server=.;database=unsecured";
+
+            config.License.Company = "West Wind 3";
+            config.License.LicenseKey = "RickWestWind3-61123222";
 
             config.Write();
 
@@ -63,6 +68,8 @@ namespace Westwind.Utilities.Configuration.Tests
         [TestMethod]
         public void WriteEncryptedConfigurationTest()
         {
+            File.Delete(STR_JSONCONFIGFILE);
+
             var config = new JsonFileConfiguration();
             config.Initialize(STR_JSONCONFIGFILE);
 
@@ -70,7 +77,18 @@ namespace Westwind.Utilities.Configuration.Tests
             config.Password = "seekrit2";
             config.AppConnectionString = "server=.;database=unsecured";
 
+            config.License.Company = "West Wind 2";
+            config.License.LicenseKey = "RickWestWind2-51123222";
+
             config.Write();
+
+            // completely reload settings
+            config = new JsonFileConfiguration();
+            config.Initialize(STR_JSONCONFIGFILE);
+
+            Assert.IsTrue(config.Password == "seekrit2");
+            Assert.IsTrue(config.License.Company == "West Wind 2");
+            Assert.IsTrue(config.License.LicenseKey == "RickWestWind2-51123222");
 
             string jsonConfig = File.ReadAllText(STR_JSONCONFIGFILE);
             Console.WriteLine(jsonConfig);

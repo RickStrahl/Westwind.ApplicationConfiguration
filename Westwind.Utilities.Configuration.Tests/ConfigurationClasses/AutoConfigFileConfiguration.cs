@@ -43,9 +43,9 @@ namespace Westwind.Utilities.Configuration.Tests
             MailServerPassword = "seekrity";
             License = new LicenseInformation()
             {
-                Name = "User 1",
-                Company = "Company 1",
-                LicenseKey = 10
+                Name = "Rick",
+                Company = "West Wind",
+                LicenseKey = "WestWind-5333121"
             };
         }
 
@@ -73,40 +73,6 @@ namespace Westwind.Utilities.Configuration.Tests
 
             // Automatically initialize this one
             this.Initialize();
-        }
-    }
-
-    /// <summary>
-    /// This version of the class internally calls Initialize
-    /// to read configuration information immediately from
-    /// itself so no explicit call to Initialize is required
-    /// </summary>
-    class AppSettingsConfigFileConfiguration : AppConfiguration
-    {
-        public string ApplicationName { get; set; }
-        public DebugModes DebugMode { get; set; }
-        public int MaxDisplayListItems { get; set; }
-        public bool SendAdminEmailConfirmations { get; set; }
-
-        public AppSettingsConfigFileConfiguration()
-        {
-            ApplicationName = "Configuration Tests";
-            DebugMode = DebugModes.Default;
-            MaxDisplayListItems = 15;
-            SendAdminEmailConfirmations = false;
-
-            // Automatically initialize this one
-            Initialize();
-        }
-
-        protected override IConfigurationProvider OnCreateDefaultProvider(string sectionName, object configData)
-        {
-            Provider = new ConfigurationFileConfigurationProvider<AppSettingsConfigFileConfiguration>()
-            {
-                 ConfigurationSection = null // Forces to AppSettings                  
-            };
-
-            return Provider;
         }
     }
 }

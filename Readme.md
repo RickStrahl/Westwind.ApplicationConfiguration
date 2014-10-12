@@ -1,23 +1,24 @@
-#West Wind Application Configuration
-###Strongly typed configuration classes for .NET Applications###
+# West Wind Application Configuration
+#### Strongly typed configuration classes for .NET Applications###
 
-.NET library that provides for code-first creation of configuration settings
+This is a .NET library for code-first configuration settings
 using strongly typed .NET classes. Create a class, add properties for configuration
 values, instantiate and automatically read and optionally write your strongly typed
-configuration values from the configuration store.
+configuration values from various configuration stores.
 
 Configuration data can be stored in various configuration formats and 
 can auto-sync from store to class and vice versa. You can use standard 
 .NET config files (default), including custom sections and external files, or 
-other custom stores including plain XML files, strings or a database.
+other custom stores including JSON, plain XML files, strings or a database.
 It's also easy to create your own configuration providers to store
-config data in some other format.
+config data in some other format or you can use the StringConfigurationProvider
+to capture configuration data to store as you like.
 
 Unlike the built-in .NET Configuration Manager, the classes you
 create are strongly typed and automatically convert config store values
 to strong types. You can also write configuration data from the class to
 the configuration store and if a store or store value doesn't exist it's
-automatically created (provided permissions allow it).
+automatically created in the store (provided permissions allow it).
 
 This library provides:
 
@@ -38,12 +39,12 @@ Provided Configuration Storage formats:
     * Custom Configuration Sections
 	* External Configuration Files    
 * Standalone, plain XML files
-* Json files (requires JSON.NET)
+* JSON files (explicit JSON.NET reference required)
 * Strings
 * Sql Server Tables
 * Customizable to create your own Configuration Providers
 
-More detailed documentation is available as part of the Westwind.WebToolkit
+More detailed documentation is available as part of the Westwind.Toolkit
 here:
 * [Main Product Page](http://west-wind.com/westwind.applicationconfiguration)
 * [Get it from NuGet](http://nuget.org/packages/Westwind.Utilities.Configuration)
@@ -250,7 +251,7 @@ You can override the OnCreateDefaultProfile() method and configure a provider, o
 higher level OnInitialize() which creates a provider and then reads the content. Either one allows
 customization of the default Initialization() when Initialize is called with no explicit Provider.
 
-##Multiple Configuration Stores
+## Multiple Configuration Stores
 To create multiple configuration stores simply create multiple classes and 
 access each class individually. A single app can easily have multiple configuration
 classes to separate distinct sections or tasks within an application.
@@ -268,7 +269,27 @@ This allows for nice compartmentalization of configuration settings and
 also for multiple components/assemblies to have their own private 
 configuration settings.
 
-##Complex Type Serialization
+## Configuration Property Encryption
+Application Configuration supports encryption of single keys of the stored configuration values. To enable encryption you specify the fields that are to be encrypted using the Provider's PropertiesToEncypt property. 
+
+```c#
+App.Config = new AutoConfigFileConfiguration();
+
+// Create a customized provider to set provider options
+// Note: several different providers are available    
+var provider = new ConfigurationFileConfigurationProvider<AutoConfigFileConfiguration>()
+{
+	ConfigurationSection = "CustomConfiguration",
+	EncryptionKey = "seekrit123",
+	PropertiesToEncrypt = "MailServer,MailServerPassword,License.LicenseKey"                
+};
+```
+ 
+You can encrypt any single property including nested properties using '.' syntax for any child properties of nested objects. There's no support for encrypting list values at this time.
+
+Encryption occurs prior to writing the object to its provider store. Decryption occurs when the config object is read from the provider store. Note that the in-memory object is always un-encrypted - on the data stored on disk or in the provider store is encrypted. 
+
+## Complex Type Serialization
 If you're using a configuration store other than .NET .config files you
 can easily create complex hierarchical types as these types are serialized
 using either XML or JSON serialization - anything those serialization formats
@@ -342,14 +363,12 @@ you get a serialized configuration section like this:
 </CustomConfig>
 ```
 
-####TypeConverters
+#### TypeConverters
 You can also use custom type converters on the object to serialize which is a bit
-more involved, but 
-
-You can find out more here:
+more involved. You can find out more here:
 http://west-wind.com/westwindtoolkit/docs/_1cx0ymket.htm
 
-####IList Types
+#### IList Types
 In addition to complex objects you can also serialize IList values or objects 
 in .config files. List values are enumerated and read/written with indexes such
 as ItemList1, ItemList2, ItemList3 etc. with each item representing either a single
