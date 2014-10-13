@@ -31,6 +31,7 @@
 */
 #endregion
 
+using System;
 namespace Westwind.Utilities.Configuration
 {
 
@@ -68,6 +69,12 @@ namespace Westwind.Utilities.Configuration
         public override bool Read(AppConfiguration config)
         {
             var newConfig = SerializationUtils.DeSerializeObject(XmlConfigurationFile,typeof(TAppConfiguration),UseBinarySerialization) as TAppConfiguration;
+
+
+            //If the file exists, but it could not be read (most likely due to badly formed XML), don't overwrite it.
+            if (System.IO.File.Exists(XmlConfigurationFile) == true && newConfig == null)
+                throw new Exception(string.Format("Config file {0} exists, but does not appear to contain well-formed XML. Please verify the XML contents of the file.", XmlConfigurationFile));
+
             if (newConfig == null)
             {
                 if(Write(config))
