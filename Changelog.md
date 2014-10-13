@@ -1,27 +1,27 @@
 #West Wind Application Configuration Change Log
 
 ### Version 2.25
-*not released yet*
+*Oct. 14th, 2014*
+
+* **ConfigurationFile Configuration Provider support for Complex Types**<br/>
+Added another option for serialization of flat complex objects, by 
+implementing additional checks for a **static** FromString() method that
+if found can be used to deserialize object. [more info](http://west-wind.com/westwindtoolkit/docs/?page=_1cx0ymket.htm)
+
+* **ConfigurationFile Configuration Provider support for IList**<br/>
+You can now also serialize IList objects into the config file. The list
+is serialize a ItemList1,ItemList2,ItemList3 where ItemList is the name
+of the property. Complex objects are supported with the new complex
+type parsing support or TypeConverters. [more info](http://west-wind.com/westwindtoolkit/docs/?page=_1cx0ymket.htm)
 
 * **Support for nested Configuration Property Encryption**<br/>
 You can now specify nested properties in child objects to be encrypted in
 all providers by using simple '.' syntax in the PropertiesToEncrypt property
 of the provider (ie. <code>PropertiesToEncrypt="Password,License.LicenseKey")</code>.
 
-* **ConfigurationFile Configuration Provider support for Complex Types**</br>
-Added another option for serialization of flat complex objects, by 
-implementing additional checks for a **static** FromString() method that
-if found can be used to deserialize object. [more info](http://west-wind.com/westwindtoolkit/docs/?page=_1cx0ymket.htm)
-
-* **ConfigurationFile Configuration Provider support for IList**</br>
-You can now also serialize IList objects into the config file. The list
-is serialize a ItemList1,ItemList2,ItemList3 where ItemList is the name
-of the property. Complex objects are supported with the new complex
-type parsing support or TypeConverters. [more info](http://west-wind.com/westwindtoolkit/docs/?page=_1cx0ymket.htm)
-
 
 ### Version 2.20
-*Nov. 14th, 2013*
+*June. 13th, 2014*
 
 * **JSON File Provider added**<br/>
 You can now store configuration optionally using JSON. The new JsonFileConfigurationProvider
@@ -33,8 +33,8 @@ to your project.
 Added this changelog as well as updating the [detailed help file documentation](http://west-wind.com/westwind.applicationconfiguration/docs) step by step instructions.
 
 
-###Version 2.11
-*Nov. 4, 2013*
+###Version 2.15
+*Nov. 14th, 2013*
 
 * **Make XML Config File Reader read-only**<br/>
 Changed the config file reader to open files in read-only mode to minimze multi-user/thread access issues while writing configuration in case other threads want to access the data. Thanks to  Patrick Wyatt.
@@ -50,7 +50,7 @@ Accidentally left outdated V1 documentation on the detailed developer documentat
 
 
 ###Version 2.10
-*August 28th, 2013*
+*August 25th, 2013*
 
 * **License Change - drop commercial License Requirement**<br/>
 We've dropped the requirement for a commercial license for this tool and are using a pure MIT license, 
