@@ -70,7 +70,7 @@ namespace Westwind.Utilities.Configuration.Tests
             // pass in anonymous object with parameters we're interested in
             // the OnCreateDefaultProvider reads the anonymous object values
             // and uses them for the SQL access object
-            base.Initialize(configData: new { ConnectionString = connectionString, Tablename = tableName });
+            Initialize(configData: new { ConnectionString = connectionString, Tablename = tableName });
         }
 
     }

@@ -124,6 +124,15 @@ namespace Westwind.Utilities.Configuration.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid XML configuration file format in {0}..
+        /// </summary>
+        public static string InvalidXmlConfigurationFile {
+            get {
+                return ResourceManager.GetString("InvalidXmlConfigurationFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Object could not be deserialized from Xml..
         /// </summary>
         public static string ObjectCouldNotBeDeserializedFromXml {
