@@ -196,7 +196,11 @@ namespace Westwind.Utilities.Configuration
                 else
                 {
                     // List Value
-                    var list = Activator.CreateInstance(fieldType) as IList;
+                    var listType = typeof(List<>);
+                    var constructedListType = listType.MakeGenericType(fieldType.GetElementType());
+
+                    var list = Activator.CreateInstance(constructedListType) as IList;
+
                     var elType = fieldType.GetElementType();
                     if (elType == null)
                     {
