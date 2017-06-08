@@ -312,7 +312,7 @@ be single level without child types.
 However, the `ConfigurationFileConfigurationProvider` **does** support serialization
 of some complex types and IList-based lists.
 
-####Complex Types using ToString()/FromString()
+#### Complex Types using ToString()/FromString()
 One of the easiest way to serialize configuration child objects is to create
 a custom type that implements a `ToString()` and static `FromString()` method that
 effectively provides two-way serialization.
@@ -415,7 +415,7 @@ produces the following .config:
 </CustomConfigFileConfiguration>
 ```
 
-##Class Structure
+## Class Structure
 This library consists of the main `AppConfiguration` class plus provider
 logic. Providers are based on a `IConfigurationProvider` interface with
 a `ConfigurationProviderBase` class providing base functionality.
@@ -423,7 +423,7 @@ a `ConfigurationProviderBase` class providing base functionality.
 Here's the complete class layout:
 ![Classes](https://raw.github.com/RickStrahl/Westwind.ApplicationConfiguration/Version2_InitializationChanges/AppConfiguration.png)
 
-##Many More Options
+## Many More Options
 Many more configuration options are available. Please check the full documentation
 for more information.
 
