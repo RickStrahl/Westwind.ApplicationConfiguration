@@ -90,11 +90,17 @@ namespace Westwind.Utilities.Configuration
         /// if not - automatically calls it without parameters
         /// </summary>
         protected bool InitializeCalled = false;
-        
+
+        /// <summary>
+        /// Event handlers
+        /// </summary>
+        public event EventHandler ConfigurationWritten;
+        public event EventHandler ConfigurationRead;
+
         /// <summary>
         /// Default constructor of this class SHOULD ALWAYS be implemented in
         /// every subclass to allow serialization instantiation and setting
-		/// of initial property values.
+        /// of initial property values.
         /// </summary>         
         public AppConfiguration()
         { }
@@ -120,8 +126,8 @@ namespace Westwind.Utilities.Configuration
             // Initialization occurs only once
             if (InitializeCalled)
                return;
-            InitializeCalled = true;  
-            
+            InitializeCalled = true;
+
             if (string.IsNullOrEmpty(sectionName))
                 sectionName = this.GetType().Name;
 
@@ -195,7 +201,7 @@ namespace Westwind.Utilities.Configuration
                 ErrorMessage = Provider.ErrorMessage;
                 return false;
             }
-            
+            this.OnConfigurationWritten(EventArgs.Empty);
             return true;
         }
 
@@ -237,7 +243,6 @@ namespace Westwind.Utilities.Configuration
                 ErrorMessage = Provider.ErrorMessage;
                 return null;
             }
-
             return inst;
         }
 
@@ -255,6 +260,7 @@ namespace Westwind.Utilities.Configuration
                 ErrorMessage = Provider.ErrorMessage;
                 return false;
             }
+            this.OnConfigurationRead(EventArgs.Empty);
             return true;
         }
 
@@ -332,6 +338,15 @@ namespace Westwind.Utilities.Configuration
             return Read<T>(xml, null);
         }
 
+        protected virtual void OnConfigurationWritten( EventArgs e)
+        {
+            this.ConfigurationWritten?.Invoke(this, e);
+        }
+
+        protected virtual void OnConfigurationRead(EventArgs e)
+        {
+            this.ConfigurationRead?.Invoke(this, e);
+        }
     }
 
     /// <summary>

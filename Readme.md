@@ -11,18 +11,14 @@ can auto-sync from store to class and vice versa. You can use standard
 .NET config files (default), including custom sections and external files, or 
 other custom stores including JSON, plain XML files, strings or a database.
 It's also easy to create your own configuration providers to store
-config data in some other format or you can use the generic `StringConfigurationProvider`
-to capture configuration data and store it as you like.
+config data in some other format or you can use the StringConfigurationProvider
+to capture configuration data to store as you like.
 
 Unlike the built-in .NET Configuration Manager, the classes you
 create are strongly typed and automatically convert config store values
 to strong types. You can also write configuration data from the class to
 the configuration store and if a store or store value doesn't exist it's
 automatically created in the store (provided permissions allow it).
-
-To install and use it, you can use NuGet:
-
-	PM> Install-Package Westwind.Utilities.Configuration
 
 This library provides:
 
@@ -63,11 +59,6 @@ West Wind Application Configuration is also part of:
 [West Wind Toolkit's Westwind.Utilities library](http://west-wind.com/WestwindToolkit/)
 
 ## Getting Started
-Start by adding the Westwind.Utilities.Configuration NuGet package to your
-project. Use either the Package Manager Explorer or the Console:
-
-    PM> Install-Package Westwind.Utilities.Configuration
-
 To create configurations, simply create a class that holds properties
 for each configuration value. The class maps configuration values
 stored in the configuration file. Values are stored as string in 
@@ -79,7 +70,7 @@ The library allows for reading and writing of configuration data
 if values don't exist in the configuration store. Your class ALWAYS
 has default values.
 
-To use you simply create a class derived from `AppConfiguration` and add properties:
+To use you simply create a class derived from AppConfiguration and add properties:
 
 ```c#
 public class ApplicationConfiguration : Westwind.Utilities.Configuration.AppConfiguration
@@ -100,7 +91,7 @@ public class ApplicationConfiguration : Westwind.Utilities.Configuration.AppConf
 
 Each property maps to a configuration store setting.
 
-To use the class you simply create an instance and call `Initialize()` then
+To use the class you simply create an instance and call Initialize() then
 read configuration values that were read from the configuration store, or
 default values if store values don't exist:
 
@@ -152,7 +143,7 @@ int maxItems = App.Configuration.MaxPageItems;
 DebugModes mode = App.Configuration.DebugMode;
 ```
 
-Once instantiated you can also use `Read()` and `Write()` to re-read or
+Once instantiated you can also use Read() and Write() to re-read or
 write values to the underlying configuration store.
 
 Note that you can easily create multiple application configuration classes,
@@ -162,7 +153,7 @@ configuration settings.
 
 ## Configuration Providers
 By default configuration information is stored in standard config files.
-When calling the stock `Initialize()` method with no parameters, you get
+When calling the stock Initialize() method with no parameters, you get
 configuration settings stored in an app/web.config file with
 a section that matches the class name.
 
@@ -188,7 +179,7 @@ public static App
 ```
 
 Alternately you can abstract the above logic directly into your configuration
-class by overriding the `OnInitialize()` method to provide your default 
+class by overriding the OnInitialize() method to provide your default 
 initialization logic which keeps all configuration related logic in 
 one place.
 
@@ -256,9 +247,9 @@ public class DatabaseConfiguration : Westwind.Utilities.Configuration.AppConfigu
 }
 ```
 
-You can override the `OnCreateDefaultProfile()` method and configure a provider, or the slightly
-higher level `OnInitialize()` which creates a provider and then reads the content. Either one allows
-customization of the default Initialization when `Initialize()` is called with no explicit Provider.
+You can override the OnCreateDefaultProfile() method and configure a provider, or the slightly
+higher level OnInitialize() which creates a provider and then reads the content. Either one allows
+customization of the default Initialization() when Initialize is called with no explicit Provider.
 
 ## Multiple Configuration Stores
 To create multiple configuration stores simply create multiple classes and 
@@ -279,8 +270,7 @@ also for multiple components/assemblies to have their own private
 configuration settings.
 
 ## Configuration Property Encryption
-Application Configuration supports encryption of single keys of the stored configuration values. 
-To enable encryption you specify the fields that are to be encrypted using the Provider's PropertiesToEncypt property. 
+Application Configuration supports encryption of single keys of the stored configuration values. To enable encryption you specify the fields that are to be encrypted using the Provider's PropertiesToEncypt property. 
 
 ```c#
 App.Config = new AutoConfigFileConfiguration();
@@ -309,12 +299,12 @@ If you're using the .config format you're limited to key value pairs in
 configuration sections, so your configuration objects have to preferrably
 be single level without child types.
 
-However, the `ConfigurationFileConfigurationProvider` **does** support serialization
+However, the ConfigurationFileConfigurationProvider **does** support serialization
 of some complex types and IList-based lists.
 
 ####Complex Types using ToString()/FromString()
 One of the easiest way to serialize configuration child objects is to create
-a custom type that implements a `ToString()` and static `FromString()` method that
+a custom type that implements a ToString() and static FromString() method that
 effectively provides two-way serialization.
 
 Here's an example:
@@ -338,9 +328,9 @@ public class LicenseInformation
 }
 ```
 
-Here a `StringSerializer` helper is used that basically does a `string.Join()`/`string.Split()`
-to create a serialized string with a separator of an object in the `ToString()` and 
-`FromString()` methods. You can of course use any mechanism to create a string 
+Here a StringSerializer helper is used that basically does a string.Join()/Split()
+to create a serialized string with a separator of an object in the ToString() and 
+FromString() methods. You can of course use any mechanism to create a string 
 that represents the serialized object data but StringSerializer is a quick and easy
 way to do so.
 
@@ -382,8 +372,8 @@ http://west-wind.com/westwindtoolkit/docs/_1cx0ymket.htm
 In addition to complex objects you can also serialize IList values or objects 
 in .config files. List values are enumerated and read/written with indexes such
 as ItemList1, ItemList2, ItemList3 etc. with each item representing either a single
-value such as string, or a complex object that supports either the `ToString()`/`FromString()`
-or `TypeConverter` serialization discussed in the previous section.
+value such as string, or a complex object that supports either the ToString/FromString()
+or TypeConverter serialization discussed in the previous section.
 
 ```c#
 public class CustomConfigFileConfiguration : Westwind.Utilities.Configuration.AppConfiguration
@@ -416,9 +406,9 @@ produces the following .config:
 ```
 
 ##Class Structure
-This library consists of the main `AppConfiguration` class plus provider
-logic. Providers are based on a `IConfigurationProvider` interface with
-a `ConfigurationProviderBase` class providing base functionality.
+This library consists of the main AppConfiguration class plus provider
+logic. Providers are based on a IConfigurationProvider interface with
+a ConfigurationProviderBase class providing base functionality.
 
 Here's the complete class layout:
 ![Classes](https://raw.github.com/RickStrahl/Westwind.ApplicationConfiguration/Version2_InitializationChanges/AppConfiguration.png)
